@@ -1,8 +1,10 @@
 # vite-plugin-bundle-obfuscator
 
----
-
 ![stars](https://img.shields.io/github/stars/z0ffy/vite-plugin-bundle-obfuscator)
+[![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
+![weekly downloads](https://img.shields.io/npm/dw/vite-plugin-bundle-obfuscator)
+![license](https://img.shields.io/npm/l/vite-plugin-bundle-obfuscator)
+[![install size](https://packagephobia.com/badge?p=vite-plugin-bundle-obfuscator)](https://packagephobia.com/result?p=vite-plugin-bundle-obfuscator)
 
 The javascript obfuscator plugin used in a vite environment
 
