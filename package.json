@@ -4,6 +4,7 @@
   "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
   "description": "The javascript obfuscator plugin used in a vite environment",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts",
     "start": "npm run build -- --watch"
@@ -13,6 +14,7 @@
     "obfuscator"
   ],
   "author": "zoffy",
+  "files": ["/dist"],
   "license": "MIT",
   "repository": {
     "type": "git",
