@@ -1,20 +1,30 @@
 {
-  "name": "vite-bundle-obfuscator",
+  "name": "vite-plugin-bundle-obfuscator",
   "version": "1.0.0",
-  "homepage": "https://github.com/z0ffy/vite-bundle-obfuscator",
+  "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
   "description": "The javascript obfuscator plugin used in a vite environment",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup src/index.ts",
+    "start": "npm run build -- --watch"
   },
-  "keywords": ["vite", "obfuscator"],
+  "keywords": [
+    "vite",
+    "obfuscator"
+  ],
   "author": "zoffy",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/z0ffy/vite-bundle-obfuscator.git"
+    "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator.git"
   },
   "bugs": {
-    "url": "https://github.com/z0ffy/vite-bundle-obfuscator/issues"
+    "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1",
+    "tsup": "^8.2.2",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.4"
   }
 }
