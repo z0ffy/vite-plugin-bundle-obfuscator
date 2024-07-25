@@ -6,7 +6,7 @@
 ![license](https://img.shields.io/npm/l/vite-plugin-bundle-obfuscator)
 [![install size](https://packagephobia.com/badge?p=vite-plugin-bundle-obfuscator)](https://packagephobia.com/result?p=vite-plugin-bundle-obfuscator)
 
-The javascript obfuscator plugin used in a vite environment
+Javascript obfuscator plugin for Vite environments
 
 ## ⭐️ Feature
 - [ ] support the stringArray options
