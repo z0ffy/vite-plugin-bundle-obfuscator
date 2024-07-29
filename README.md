@@ -32,11 +32,11 @@ export default {
 
 ## 💪 Config
 
-| Property Name | Description                           | Type              | Default            | version |
-|---------------|---------------------------------------|-------------------|--------------------|---------|
-| enable        | enable or disable obfuscator          | Boolean           | true               | v1.0.1  |
-| excludes      | bundle names that need to be excluded | string[]          | []                 | v1.0.0  |
-| options       | javascript obfuscator options         | ObfuscatorOptions | Obfuscator default | v1.0.0  |
+| Property Name | Description                           | Type              | Default        | version |
+|---------------|---------------------------------------|-------------------|----------------|---------|
+| enable        | enable or disable obfuscator          | Boolean           | true           | v1.0.1  |
+| excludes      | bundle names that need to be excluded | string[]          | []             | v1.0.0  |
+| options       | javascript obfuscator options         | ObfuscatorOptions | Config example | v1.0.0  |
 
 ## 💪 Config example
 

@@ -2,9 +2,19 @@ import { Plugin } from 'vite';
 import { ObfuscatorOptions } from 'javascript-obfuscator';
 
 interface Config {
+    /**
+     * Bundle names that need to be excluded.
+     */
     excludes: string[];
+    /**
+     * Enable or disable obfuscator.
+     */
+    enable: boolean;
+    /**
+     * JavaScript obfuscator options.
+     */
     options: ObfuscatorOptions;
 }
-declare function viteBundleObfuscator(config: Config): Plugin;
+declare function viteBundleObfuscator(config?: Partial<Config>): Plugin;
 
 export { viteBundleObfuscator as default };
