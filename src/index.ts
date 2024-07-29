@@ -9,6 +9,10 @@ interface Config {
   * */
   excludes: string[];
   /*
+  * enable or disable obfuscator
+  * */
+  enable: Boolean;
+  /*
   * javascript obfuscator options
   * */
   options: ObfuscatorOptions;
@@ -20,7 +24,7 @@ export default function viteBundleObfuscator(config: Config): Plugin {
     transformIndexHtml: {
       enforce: 'post',
       transform(t, e) {
-        if (!(e !== null && e.bundle)) return t;
+        if (!config.enable || !(e !== null && e.bundle)) return t;
         console.log('obfuscate files');
         for (const [r, o] of Object.entries(e.bundle)) {
           if ("code" in o && o.code && config.excludes.every((i) => !r.includes(i))) {
