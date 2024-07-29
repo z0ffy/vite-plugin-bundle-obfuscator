@@ -14,13 +14,19 @@ Javascript obfuscator plugin for Vite environments
 
 ## 👨‍💻 Usage
 
-1. Register the plugin in `vite.config.js`
-2. Set your own configuration
+1. Run npm install vite-plugin-bundle-obfuscator -D
+2. Register the plugin in `vite.config.js`
+3. Set your own configuration or set empty to use default options
+
+```shell
+npm install vite-plugin-bundle-obfuscator -D
+```
 
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
 const obfuscatorConfig = {
+  enable: true,
   excludes: [],
   options: {}
 };
