@@ -7,10 +7,11 @@ settings:
 importers:
 
   .:
-    devDependencies:
+    dependencies:
       javascript-obfuscator:
         specifier: ^4.1.1
         version: 4.1.1
+    devDependencies:
       tsup:
         specifier: ^8.2.2
         version: 8.2.2(postcss@8.4.39)(typescript@5.5.4)
@@ -816,8 +817,8 @@ packages:
     resolution: {integrity: sha512-0OO4y2iOHix2W6ujICbKIaEQXvFQHue65vUG3pb5EUomzPI90z9hsA1VsO/dbIIpC53J8gxM9Q4Oho0jrCM/yA==}
     engines: {node: '>= 0.8.0'}
 
-  libphonenumber-js@1.11.4:
-    resolution: {integrity: sha512-F/R50HQuWWYcmU/esP5jrH5LiWYaN7DpN0a/99U8+mnGGtnx8kmRE+649dQh3v+CowXXZc8vpkf5AmYkO0AQ7Q==}
+  libphonenumber-js@1.11.7:
+    resolution: {integrity: sha512-x2xON4/Qg2bRIS11KIN9yCNYUjhtiEjNyptjX0mX+pyKHecxuJVLIpfX1lq9ZD6CrC/rB+y4GBi18c6CEcUR+A==}
 
   lilconfig@3.1.2:
     resolution: {integrity: sha512-eop+wDAvpItUys0FWkHIKeC9ybYrTGbU41U5K7+bttZZeohvnY7M9dZ5kB21GNWiFT2q1OoPTvncPCgSOVO5ow==}
@@ -1539,7 +1540,7 @@ snapshots:
   class-validator@0.14.1:
     dependencies:
       '@types/validator': 13.12.0
-      libphonenumber-js: 1.11.4
+      libphonenumber-js: 1.11.7
       validator: 13.12.0
 
   color-convert@2.0.1:
@@ -1859,7 +1860,7 @@ snapshots:
       prelude-ls: 1.1.2
       type-check: 0.3.2
 
-  libphonenumber-js@1.11.4: {}
+  libphonenumber-js@1.11.7: {}
 
   lilconfig@3.1.2: {}
 
