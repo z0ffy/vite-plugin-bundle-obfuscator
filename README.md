@@ -40,6 +40,7 @@ export default {
 
 | Property Name | Description                           | Type              | Default        | version |
 |---------------|---------------------------------------|-------------------|----------------|---------|
+| log           | show or hide log                      | Boolean           | true           | v1.0.4  |
 | enable        | enable or disable obfuscator          | Boolean           | true           | v1.0.1  |
 | excludes      | bundle names that need to be excluded | string[]          | []             | v1.0.0  |
 | options       | javascript obfuscator options         | ObfuscatorOptions | Config example | v1.0.0  |
@@ -48,7 +49,10 @@ export default {
 
 ```javascript
 const obfuscatorConfig = {
+  // You can temporarily package the dependency of node_modules into a bundle named vendor-modules or other names, and configure it as a filter item.
   excludes: ['vendor-modules'],
+  enable: true,
+  log: true,
   options: {
     compact: true,
     controlFlowFlattening: true,

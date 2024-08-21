@@ -11,6 +11,10 @@ interface Config {
    * Enable or disable obfuscator.
    */
   enable: boolean;
+  /*
+  * Show or hide log
+  * */
+  log: boolean;
   /**
    * JavaScript obfuscator options.
    */
@@ -20,6 +24,7 @@ interface Config {
 const defaultConfig: Readonly<Config> = {
   excludes: [],
   enable: true,
+  log: true,
   options: {
     compact: true,
     controlFlowFlattening: true,
@@ -61,15 +66,17 @@ export default function viteBundleObfuscator(config?: Partial<Config>): Plugin {
       transform(html, {bundle}) {
         if (!finalConfig.enable || !bundle) return html;
 
+        const now = performance.now();
         console.log('Starting obfuscation process...');
         Object.entries(bundle).forEach(([fileName, bundleItem]) => {
           if ('code' in bundleItem && bundleItem.code && finalConfig.excludes.every(exclude => !fileName.includes(exclude))) {
-            console.log(`Obfuscating ${fileName}...`);
+            if (finalConfig.log) console.log(`Obfuscating ${fileName}...`);
             bundleItem.code = javascriptObfuscator.obfuscate(bundleItem.code, finalConfig.options).getObfuscatedCode();
-            console.log(`Obfuscation complete for ${fileName}`);
+            if (finalConfig.log) console.log(`Obfuscation complete for ${fileName}`);
           }
         });
-        console.log('Obfuscation process completed.');
+        const consume = (performance.now() - now) / 1000;
+        console.log('Obfuscation process completed in' + consume.toFixed(1) + 's');
 
         return html;
       }
