@@ -10,6 +10,7 @@ interface Config {
      * Enable or disable obfuscator.
      */
     enable: boolean;
+    log: boolean;
     /**
      * JavaScript obfuscator options.
      */
