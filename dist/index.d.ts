@@ -1,4 +1,4 @@
-import { Plugin } from 'vite';
+import { PluginOption } from 'vite';
 import { ObfuscatorOptions } from 'javascript-obfuscator';
 
 interface Config {
@@ -16,6 +16,7 @@ interface Config {
      */
     options: ObfuscatorOptions;
 }
-declare function viteBundleObfuscator(config?: Partial<Config>): Plugin;
+
+declare function viteBundleObfuscator(config?: Partial<Config>): PluginOption;
 
 export { viteBundleObfuscator as default };
