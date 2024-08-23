@@ -10,13 +10,25 @@ export class Log {
   private noop(_: string): void {
   }
 
-  alwaysLog(msg: string): void {
-    console.log(msg);
+  alwaysLog(...reset: (string | number)[]): void {
+    console.log(...reset);
   }
 
   info(msg: string): void {
     this._log(msg);
   }
+}
+
+export function formatTime(ms: number): string {
+  const hours = Math.floor(ms / 3600000);
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+
+  return [
+    hours ? `${hours}h ` : '',
+    minutes ? `${minutes}m ` : '',
+    seconds || (!hours && !minutes) ? `${seconds}s` : ''
+  ].filter(Boolean).join('');
 }
 
 export const defaultConfig: Readonly<Config> = {

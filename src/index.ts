@@ -2,7 +2,7 @@ import type {IndexHtmlTransformHook, PluginOption} from 'vite';
 import * as vite from 'vite';
 import type {Config} from "./type";
 import javascriptObfuscator from 'javascript-obfuscator';
-import {defaultConfig, Log} from "./utils";
+import {defaultConfig, formatTime, Log} from "./utils";
 
 function getViteMajorVersion() {
   return vite?.version ? Number(vite.version.split('.')[0]) : 2
@@ -24,8 +24,8 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
         _log.info(`obfuscation complete for ${fileName}.`);
       }
     });
-    const consume = (performance.now() - now) / 1000;
-    _log.alwaysLog('✓ obfuscation process completed in ' + consume.toFixed(1) + 's.');
+    const consume = formatTime(performance.now() - now);
+    _log.alwaysLog('\x1b[36m%s\x1b[0m %s', '✓', `obfuscation process completed in ${consume}.`);
 
     return html;
   }
