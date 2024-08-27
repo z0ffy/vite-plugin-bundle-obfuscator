@@ -2,11 +2,12 @@
 
 ![stars](https://img.shields.io/github/stars/z0ffy/vite-plugin-bundle-obfuscator)
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
-![weekly downloads](https://img.shields.io/npm/dw/vite-plugin-bundle-obfuscator)
-![license](https://img.shields.io/npm/l/vite-plugin-bundle-obfuscator)
-[![install size](https://packagephobia.com/badge?p=vite-plugin-bundle-obfuscator)](https://packagephobia.com/result?p=vite-plugin-bundle-obfuscator)
+![NPM License](https://img.shields.io/npm/l/vite-plugin-bundle-obfuscator)
+![downloads](https://img.shields.io/npm/dt/vite-plugin-bundle-obfuscator)
+![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/vite-plugin-bundle-obfuscator)
+![NPM Version](https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator)
 
-Javascript obfuscator plugin for Vite environments
+JavaScript obfuscator plugin for Vite environments
 
 ## ⭐️ Feature
 - [ ] support the stringArray options
