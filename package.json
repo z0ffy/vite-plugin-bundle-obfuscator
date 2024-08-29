@@ -26,9 +26,9 @@
     "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues"
   },
   "devDependencies": {
-    "tsup": "^8.2.2",
+    "tsup": "^8.2.4",
     "typescript": "^5.5.4",
-    "vite": "^5.3.4"
+    "vite": "^5.4.2"
   },
   "dependencies": {
     "javascript-obfuscator": "^4.1.1"
