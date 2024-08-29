@@ -6,8 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts",
-    "start": "npm run build -- --watch",
-    "publish": "npm run build & npm publish"
+    "start": "npm run build -- --watch"
   },
   "keywords": [
     "vite",
