@@ -2,16 +2,20 @@
   "name": "vite-plugin-bundle-obfuscator",
   "version": "1.0.6",
   "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
-  "description": "Javascript obfuscator plugin for Vite environments",
-  "main": "dist/index.js",
+  "description": "JavaScript obfuscator plugin for Vite environments",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts",
-    "start": "npm run build -- --watch"
+    "start": "npm run build -- --watch",
+    "publish": "npm run build & npm publish"
   },
   "keywords": [
     "vite",
-    "obfuscator"
+    "obfuscator",
+    "vite-plugin",
+    "vite-bundle",
+    "javascript",
+    "javascript-obfuscator"
   ],
   "author": "zoffy",
   "files": [
@@ -25,6 +29,9 @@
   "bugs": {
     "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues"
   },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "devDependencies": {
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
@@ -32,5 +39,9 @@
   },
   "dependencies": {
     "javascript-obfuscator": "^4.1.1"
+  },
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./dist/index.mjs"
   }
 }
