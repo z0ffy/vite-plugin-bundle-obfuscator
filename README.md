@@ -5,7 +5,7 @@
 ![NPM License](https://img.shields.io/npm/l/vite-plugin-bundle-obfuscator)
 ![downloads](https://img.shields.io/npm/dt/vite-plugin-bundle-obfuscator)
 ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/vite-plugin-bundle-obfuscator)
-![NPM Version](https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator)
+[![NPM Version](https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator)](https://www.npmjs.com/package/vite-plugin-bundle-obfuscator?activeTab=readme)
 
 JavaScript obfuscator plugin for Vite environments
 
