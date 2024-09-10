@@ -39,12 +39,12 @@ export default {
 
 ## 💪 Config
 
-| Property Name | Description                           | Type              | Default        | version |
-|---------------|---------------------------------------|-------------------|----------------|---------|
-| log           | show or hide log                      | Boolean           | true           | v1.0.4  |
-| enable        | enable or disable obfuscator          | Boolean           | true           | v1.0.1  |
-| excludes      | bundle names that need to be excluded | string[]          | []             | v1.0.0  |
-| options       | javascript obfuscator options         | ObfuscatorOptions | Config example | v1.0.0  |
+| Property Name | Description                                                             | Type                 | Default        | Version |
+|---------------|-------------------------------------------------------------------------|----------------------|----------------|---------|
+| log           | Show or hide log output.                                                | boolean              | true           | v1.0.4  |
+| enable        | Enable or disable the obfuscator.                                       | boolean              | true           | v1.0.1  |
+| excludes      | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[] | []             | v1.0.0  |
+| options       | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions    | Config example | v1.0.0  |
 
 ## 💪 Config example
 

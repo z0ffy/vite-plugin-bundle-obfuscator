@@ -4,7 +4,7 @@ export interface Config {
   /**
    * Bundle names that need to be excluded.
    */
-  excludes: string[];
+  excludes: (RegExp | string)[];
   /**
    * Enable or disable obfuscator.
    */
