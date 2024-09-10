@@ -2,7 +2,8 @@ import type {IndexHtmlTransformHook, PluginOption} from 'vite';
 import * as vite from 'vite';
 import type {Config} from "./type";
 import javascriptObfuscator from 'javascript-obfuscator';
-import {isFileNameExcluded, defaultConfig, formatTime, Log} from "./utils";
+import {defaultConfig, formatTime, Log} from "./utils";
+import {isFileNameExcluded} from "./utils/is";
 
 function getViteMajorVersion() {
   return vite?.version ? Number(vite.version.split('.')[0]) : 2
