@@ -86,10 +86,10 @@ export default {
 
 ```javascript
 const obfuscatorConfig = {
-  excludes: ['index.js'],
+  excludes: [],
   enable: true,
-  autoExcludeNodeModules: true,
   log: true,
+  autoExcludeNodeModules: false,
   options: {
     compact: true,
     controlFlowFlattening: true,
