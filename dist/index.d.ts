@@ -11,6 +11,7 @@ interface Config {
      */
     enable: boolean;
     log: boolean;
+    autoExcludeNodeModules: boolean;
     /**
      * JavaScript obfuscator options.
      */
