@@ -1,4 +1,7 @@
 import type {ObfuscatorOptions} from "javascript-obfuscator";
+import type {UserConfig} from "vite";
+
+export type ViteConfigFn = (config: UserConfig, env: { mode: string, command: string }) => UserConfig | null | void;
 
 export interface Config {
   /**
@@ -13,6 +16,10 @@ export interface Config {
   * Show or hide log
   * */
   log: boolean;
+  /*
+  * enable auto exclude node_modules
+  * */
+  autoExcludeNodeModules: boolean;
   /**
    * JavaScript obfuscator options.
    */
