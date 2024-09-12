@@ -1,4 +1,4 @@
-<div style="text-align: center">
+<div align="center">
 
 <img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="" />
 
