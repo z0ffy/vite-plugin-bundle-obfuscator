@@ -1,3 +1,8 @@
+## 1.0.9
+
+* feat: support exclude node_modules
+* chore(deps): update dependencies
+
 ## 1.0.8
 
 * feat: excludes config support regexp
