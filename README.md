@@ -13,7 +13,7 @@ JavaScript obfuscator plugin for Vite environments
 [![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]
 
-[Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-issues-link]
+[Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
 ![](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
@@ -36,6 +36,8 @@ JavaScript obfuscator plugin for Vite environments
 [github-license-shield]: https://img.shields.io/github/license/z0ffy/vite-plugin-bundle-obfuscator?color=white&labelColor=black
 
 [github-license-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/blob/main/LICENSE
+
+[github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
 ## ✨ Features
 
