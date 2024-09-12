@@ -1,6 +1,6 @@
 import type {IndexHtmlTransformHook, PluginOption, Rollup} from 'vite';
+import type {Config, ViteConfigFn} from "./type";
 import * as vite from 'vite';
-import {Config, ViteConfigFn} from "./type";
 import javascriptObfuscator from 'javascript-obfuscator';
 import {formatTime, Log} from "./utils";
 import {isArray, isFileNameExcluded, isFunction, isObject} from "./utils/is";
@@ -39,7 +39,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     if (isObject(output)) {
       if (!output.manualChunks) {
         output.manualChunks = defaultManualChunks;
-      } else if (typeof output.manualChunks === 'object') {
+      } else if (isObject(output.manualChunks)) {
         _log.alwaysLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
       } else if (isFunction(output.manualChunks)) {
         const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
