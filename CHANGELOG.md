@@ -1,3 +1,7 @@
+## 1.1.0
+
+* fix: enable option should control all processes
+
 ## 1.0.9
 
 * feat: support exclude node_modules
