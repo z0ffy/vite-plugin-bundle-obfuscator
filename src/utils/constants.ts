@@ -4,6 +4,7 @@ export const defaultConfig: Readonly<Config> = {
   excludes: [],
   enable: true,
   log: true,
+  apply: 'build',
   autoExcludeNodeModules: false,
   options: {
     compact: true,
@@ -38,7 +39,7 @@ export const defaultConfig: Readonly<Config> = {
 
 export const NODE_MODULES = 'vendor-modules';
 
-export const LOG_COLOR = {
+export const LOG_COLOR = Object.freeze({
   info: '\x1b[36m', // Cyan
   warn: '\x1b[33m', // Yellow
-}
+})

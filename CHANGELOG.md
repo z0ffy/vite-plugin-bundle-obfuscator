@@ -1,6 +1,7 @@
 ## 1.1.0
 
 * fix: enable option should control all processes
+* feat: add apply option
 
 ## 1.0.9
 

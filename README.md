@@ -74,13 +74,14 @@ export default {
 
 ## 💪 Config
 
-| Property Name          | Description                                                             | Type                 | Default        | Version |
-|------------------------|-------------------------------------------------------------------------|----------------------|----------------|---------|
-| log                    | Show or hide log output.                                                | boolean              | true           | v1.0.4  |
-| enable                 | Enable or disable the obfuscator.                                       | boolean              | true           | v1.0.1  |
-| autoExcludeNodeModules | Enable auto exclude node_modules                                        | boolean              | false          | v1.0.9  |
-| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[] | []             | v1.0.0  |
-| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions    | Config example | v1.0.0  |
+| Property Name          | Description                                                             | Type                                                                                | Default        | Version |
+|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|---------|
+| log                    | Show or hide log output.                                                | boolean                                                                             | true           | v1.0.4  |
+| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1  |
+| autoExcludeNodeModules | Enable auto exclude node_modules                                        | boolean                                                                             | false          | v1.0.9  |
+| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0  |
+| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0  |
+| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0  |
 
 ## 💡 Config example
 

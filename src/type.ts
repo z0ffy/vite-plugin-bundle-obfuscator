@@ -1,7 +1,7 @@
-import type {ObfuscatorOptions} from "javascript-obfuscator";
-import type {UserConfig} from "vite";
+import type { ObfuscatorOptions } from "javascript-obfuscator";
+import type { Plugin } from "vite";
 
-export type ViteConfigFn = (config: UserConfig, env: { mode: string, command: string }) => UserConfig | null | void;
+export type ViteConfigFn = Plugin['config'];
 
 export interface Config {
   /**
@@ -17,9 +17,14 @@ export interface Config {
   * */
   log: boolean;
   /*
-  * enable auto exclude node_modules
+  * Enable auto exclude node_modules
   * */
   autoExcludeNodeModules: boolean;
+  /**
+   * Determines if the plugin should apply during `build` or `serve`.
+   * It uses the apply type defined in Vite.
+   */
+  apply: Plugin['apply'];
   /**
    * JavaScript obfuscator options.
    */
