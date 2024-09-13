@@ -12,7 +12,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - run: git checkout main
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -27,6 +26,6 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
-      - run: pnpm run build && pnpm publish --provenance --access public
+      - run: pnpm run build && pnpm publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
