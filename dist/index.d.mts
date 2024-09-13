@@ -1,4 +1,4 @@
-import { PluginOption } from 'vite';
+import { Plugin, PluginOption } from 'vite';
 import { ObfuscatorOptions } from 'javascript-obfuscator';
 
 interface Config {
@@ -12,6 +12,11 @@ interface Config {
     enable: boolean;
     log: boolean;
     autoExcludeNodeModules: boolean;
+    /**
+     * Determines if the plugin should apply during `build` or `serve`.
+     * It uses the apply type defined in Vite.
+     */
+    apply: Plugin['apply'];
     /**
      * JavaScript obfuscator options.
      */

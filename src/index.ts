@@ -73,6 +73,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
   return {
     name: 'vite-plugin-bundle-obfuscator',
+    apply: finalConfig.apply,
     config: modifyConfigHandler,
     transformIndexHtml: getViteMajorVersion() >= 5 ? {
       order: 'post',
