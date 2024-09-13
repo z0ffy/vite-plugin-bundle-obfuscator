@@ -15,7 +15,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const _log = new Log(finalConfig.log);
 
   const modifyConfigHandler: ViteConfigFn = (config) => {
-    if (!finalConfig.autoExcludeNodeModules) return;
+    if (!finalConfig.enable || !finalConfig.autoExcludeNodeModules) return;
 
     config.build = config.build || {};
     config.build.rollupOptions = config.build.rollupOptions || {};
