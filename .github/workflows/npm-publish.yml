@@ -12,6 +12,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      - run: git checkout main
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
