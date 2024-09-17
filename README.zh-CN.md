@@ -4,7 +4,7 @@
 
 # vite-plugin-bundle-obfuscator
 
-JavaScript obfuscator plugin for Vite environments
+适用于Vite环境的JavaScript混淆器插件
 
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
 [![OSS Compass Analyze](https://oss-compass.org/badge/s6hwec8f.svg?metric=community)](https://oss-compass.org/analyze/s6hwec8f#community_service_support)
@@ -16,7 +16,7 @@ JavaScript obfuscator plugin for Vite environments
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p align="center">English | <a href="./README.zh-CN.md">Chinese</a></p>
+<p align="center"><a href="./README.md">English</a> | 中文</p>
 
 ![](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
@@ -42,22 +42,22 @@ JavaScript obfuscator plugin for Vite environments
 
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
-## ✨ Features
+## ✨ 待支持
 
-- [ ] 💎 support the stringArray options
-- [ ] 💎 support the node_modules split chunk
+- [ ] 💎 支持字符串数组选项
+- [ ] 💎 支持node_modules拆分块
 
-## 📦 Installation
+## 📦 安装
 
 ```shell
 npm install vite-plugin-bundle-obfuscator -D
 ```
 
-## 👨‍💻 Usage
+## 👨‍💻 使用
 
-1. Run npm install vite-plugin-bundle-obfuscator -D
-2. Register the plugin in `vite.config.js`
-3. Set your own configuration or set empty to use default options
+1. 运行npm install vite-plugin-bundle-obfuscator -D
+2. 在`vite.config.js`中注册插件
+3. 设置您自己的配置或设置为空以使用默认选项
 
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
@@ -75,18 +75,18 @@ export default {
 };
 ```
 
-## 💪 Config
+## 💪 配置
 
-| Property Name          | Description                                                             | Type                                                                                | Default        | Version |
-|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|---------|
-| log                    | Show or hide log output.                                                | boolean                                                                             | true           | v1.0.4  |
-| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1  |
-| autoExcludeNodeModules | Enable auto exclude node_modules                                        | boolean                                                                             | false          | v1.0.9  |
-| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0  |
-| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0  |
-| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0  |
+| 属性                     | 描述                                                                      | 类型                                                                                  | 默认值            | 版本     |
+|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|--------|
+| log                    | Show or hide log output.                                                | boolean                                                                             | true           | v1.0.4 |
+| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1 |
+| autoExcludeNodeModules | Enable auto exclude node_modules                                        | boolean                                                                             | false          | v1.0.9 |
+| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
+| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0 |
+| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
 
-## 💡 Config example
+## 💡 配置示例
 
 ```javascript
 const obfuscatorConfig = {
@@ -109,7 +109,7 @@ const obfuscatorConfig = {
     selfDefending: true,
     simplify: true,
     splitStrings: false,
-    // stringArray must be false, if you set true.your style sheet will be missing some。
+    // stringArray必须为false，如果您设置为true。您的样式表将缺少一些。
     stringArray: false,
     stringArrayCallsTransform: false,
     stringArrayCallsTransformThreshold: 0.5,
