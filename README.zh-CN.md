@@ -77,14 +77,14 @@ export default {
 
 ## 💪 配置
 
-| 属性                     | 描述                                                                      | 类型                                                                                  | 默认值            | 版本     |
-|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|--------|
-| log                    | Show or hide log output.                                                | boolean                                                                             | true           | v1.0.4 |
-| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1 |
-| autoExcludeNodeModules | Enable auto exclude node_modules                                        | boolean                                                                             | false          | v1.0.9 |
-| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
-| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0 |
-| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
+| 属性                     | 描述                         | 类型                                                                                  | 默认值            | 版本     |
+|------------------------|----------------------------|-------------------------------------------------------------------------------------|----------------|--------|
+| log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true           | v1.0.4 |
+| enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true           | v1.0.1 |
+| autoExcludeNodeModules | 启用自动排除node_modules。        | boolean                                                                             | false          | v1.0.9 |
+| apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
+| excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []             | v1.0.0 |
+| options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
 
 ## 💡 配置示例
 
