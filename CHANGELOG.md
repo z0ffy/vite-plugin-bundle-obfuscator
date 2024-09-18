@@ -2,6 +2,7 @@
 
 * fix: enable option should control all processes
 * feat: add apply option
+* feat: add zh doc
 
 ## 1.0.9
 
