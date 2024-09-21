@@ -1,3 +1,7 @@
+# CHANGELOG
+
+---
+
 ## 1.1.0
 
 * fix: enable option should control all processes
