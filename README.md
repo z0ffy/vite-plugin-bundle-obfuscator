@@ -44,7 +44,7 @@ JavaScript obfuscator plugin for Vite environments
 
 ## ✨ Features
 
-- [ ] 💎 support the stringArray options
+- [ ] 💎 support the stringArray options（__vite__mapDeps lost some bundle）
 - [ ] 💎 support the node_modules split chunk
 
 ## 📦 Installation
