@@ -42,10 +42,15 @@
 
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
-## ✨ 待支持
+## ✨ TODO
 
-- [ ] 💎 支持字符串数组选项
-- [ ] 💎 支持node_modules拆分块
+- [ ] 💎 ？支持node_modules拆分块
+
+## ⚠️ 注意
+
+- 如果混淆选项stringArray为真。
+- 您的结果可能会丢失一些捆绑包（在__vite__mapDeps数组中）。
+- 我正在寻找一个准确的案例。
 
 ## 📦 安装
 
@@ -109,7 +114,6 @@ const obfuscatorConfig = {
     selfDefending: true,
     simplify: true,
     splitStrings: false,
-    // stringArray必须为false，如果您设置为true。您的样式表将缺少一些。
     stringArray: false,
     stringArrayCallsTransform: false,
     stringArrayCallsTransformThreshold: 0.5,

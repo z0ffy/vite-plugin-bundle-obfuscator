@@ -42,10 +42,15 @@ JavaScript obfuscator plugin for Vite environments
 
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
-## ✨ Features
+## ✨ TODO
 
-- [ ] 💎 support the stringArray options
-- [ ] 💎 support the node_modules split chunk
+- [ ] 💎 ？support the node_modules split chunk
+
+## ⚠️ Notice
+
+- If the obfuscation option stringArray is true. 
+- Your results may lose some bundles (in __vite__mapDeps array).
+- I'm looking for an accurate case.
 
 ## 📦 Installation
 
@@ -109,7 +114,6 @@ const obfuscatorConfig = {
     selfDefending: true,
     simplify: true,
     splitStrings: false,
-    // stringArray must be false, if you set true.your style sheet will be missing some。
     stringArray: false,
     stringArrayCallsTransform: false,
     stringArrayCallsTransformThreshold: 0.5,
