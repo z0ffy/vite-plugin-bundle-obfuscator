@@ -18,6 +18,10 @@ export function isFunction(input: any): input is Function {
   return Object.prototype.toString.call(input) === '[object Function]';
 }
 
+export function isBoolean(input: any): input is boolean {
+  return Object.prototype.toString.call(input) === '[object Boolean]';
+}
+
 export function isFileNameExcluded(name: string, excludes: (RegExp | string)[]): boolean {
   for (const exclude of excludes) {
     if (isRegExp(exclude)) {

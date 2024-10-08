@@ -1,9 +1,16 @@
 import type {IndexHtmlTransformHook, PluginOption, Rollup} from 'vite';
-import type {Config, ViteConfigFn} from "./type";
 import * as vite from 'vite';
-import javascriptObfuscator from 'javascript-obfuscator';
-import {formatTime, Log} from "./utils";
-import {isArray, isFileNameExcluded, isFunction, isObject} from "./utils/is";
+import {Config, ViteConfigFn} from "./type";
+import {
+  createWorkerTask,
+  formatTime,
+  getThreadPoolSize,
+  getValidBundleList,
+  isEnableThreadPool,
+  Log,
+  obfuscateBundle
+} from "./utils";
+import {isArray, isFunction, isObject} from "./utils/is";
 import {defaultConfig, LOG_COLOR, NODE_MODULES} from "./utils/constants";
 
 function getViteMajorVersion() {
@@ -53,23 +60,35 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     }
   };
 
-  const transformIndexHtmlHandler: IndexHtmlTransformHook = (html, {bundle}) => {
+  const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, {bundle}) => {
     if (!finalConfig.enable || !bundle) return html;
 
-    const now = performance.now();
     _log.forceLog('starting obfuscation process...');
-    Object.entries(bundle).forEach(([fileName, bundleItem]) => {
-      if ('code' in bundleItem && bundleItem.code && !isFileNameExcluded(fileName, finalConfig.excludes)) {
-        _log.info(`obfuscating ${fileName}...`);
-        bundleItem.code = javascriptObfuscator.obfuscate(bundleItem.code, finalConfig.options).getObfuscatedCode();
-        _log.info(`obfuscation complete for ${fileName}.`);
+    const now = performance.now();
+    const bundleList = getValidBundleList(finalConfig, bundle);
+
+    if (isEnableThreadPool(finalConfig)) {
+      const poolSize = Math.min(getThreadPoolSize(finalConfig), bundleList.length);
+      const chunkSize = Math.ceil(bundleList.length / poolSize);
+      const workerPromises = [];
+
+      for (let i = 0; i < poolSize; i++) {
+        const chunk = bundleList.slice(i * chunkSize, (i + 1) * chunkSize);
+        workerPromises.push(createWorkerTask(finalConfig, chunk));
       }
-    });
+
+      await Promise.all(workerPromises);
+    } else {
+      bundleList.forEach(([fileName, bundleItem]) => {
+        bundleItem.code = obfuscateBundle(finalConfig, fileName, bundleItem);
+      });
+    }
+
     const consume = formatTime(performance.now() - now);
     _log.forceLog(LOG_COLOR.info + '%s\x1b[0m %s', '✓', `obfuscation process completed in ${consume}.`);
 
     return html;
-  }
+  };
 
   return {
     name: 'vite-plugin-bundle-obfuscator',

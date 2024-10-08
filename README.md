@@ -71,6 +71,7 @@ const obfuscatorConfig = {
   enable: true,
   log: true,
   autoExcludeNodeModules: true,
+  threadPool: false,
   excludes: [],
   options: {}
 };
@@ -84,10 +85,11 @@ export default {
 
 | Property Name          | Description                                                             | Type                                                                                | Default        | Version |
 |------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|---------|
+| threadPool             | Configuration for the thread pool.                                      | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false          | v1.2.0  |
+| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0  |
+| autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean                                                                             | false          | v1.0.9  |
 | log                    | Show or hide log output.                                                | boolean                                                                             | true           | v1.0.4  |
 | enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1  |
-| autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean                                                                             | false          | v1.0.9  |
-| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0  |
 | excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0  |
 | options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0  |
 
@@ -99,6 +101,7 @@ const obfuscatorConfig = {
   enable: true,
   log: true,
   autoExcludeNodeModules: false,
+  threadPool: false,
   options: {
     compact: true,
     controlFlowFlattening: true,
