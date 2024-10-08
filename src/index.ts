@@ -32,7 +32,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     }
 
     if (isArray(output)) {
-      _log.alwaysLog(LOG_COLOR.warn, 'rollupOptions.output is an array, ignoring autoExcludeNodeModules configuration.');
+      _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output is an array, ignoring autoExcludeNodeModules configuration.');
       return;
     }
 
@@ -40,7 +40,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
       if (!output.manualChunks) {
         output.manualChunks = defaultManualChunks;
       } else if (isObject(output.manualChunks)) {
-        _log.alwaysLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
+        _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
       } else if (isFunction(output.manualChunks)) {
         const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
         finalConfig.excludes.push(NODE_MODULES);
@@ -57,7 +57,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     if (!finalConfig.enable || !bundle) return html;
 
     const now = performance.now();
-    _log.alwaysLog('starting obfuscation process...');
+    _log.forceLog('starting obfuscation process...');
     Object.entries(bundle).forEach(([fileName, bundleItem]) => {
       if ('code' in bundleItem && bundleItem.code && !isFileNameExcluded(fileName, finalConfig.excludes)) {
         _log.info(`obfuscating ${fileName}...`);
@@ -66,7 +66,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
       }
     });
     const consume = formatTime(performance.now() - now);
-    _log.alwaysLog(LOG_COLOR.info + '%s\x1b[0m %s', '✓', `obfuscation process completed in ${consume}.`);
+    _log.forceLog(LOG_COLOR.info + '%s\x1b[0m %s', '✓', `obfuscation process completed in ${consume}.`);
 
     return html;
   }
