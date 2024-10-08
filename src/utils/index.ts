@@ -8,7 +8,7 @@ export class Log {
   private noop(_: string): void {
   }
 
-  alwaysLog(...reset: (string | number)[]): void {
+  forceLog(...reset: (string | number)[]): void {
     console.log(...reset);
   }
 
