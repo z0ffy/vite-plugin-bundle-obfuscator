@@ -68,35 +68,6 @@ npm install vite-plugin-bundle-obfuscator -D
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
 const obfuscatorConfig = {
-  enable: true,
-  log: true,
-  autoExcludeNodeModules: true,
-  threadPool: false,
-  excludes: [],
-  options: {}
-};
-
-export default {
-  plugins: [vitePluginBundleObfuscator(obfuscatorConfig)]
-};
-```
-
-## 💪 配置
-
-| 属性                     | 描述                         | 类型                                                                                  | 默认值            | 版本     |
-|------------------------|----------------------------|-------------------------------------------------------------------------------------|----------------|--------|
-| threadPool             | 线程池的配置。                    | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false          | v1.2.0 |
-| apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
-| autoExcludeNodeModules | 启用自动排除node_modules。        | boolean                                                                             | false          | v1.0.9 |
-| log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true           | v1.0.4 |
-| enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true           | v1.0.1 |
-| excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []             | v1.0.0 |
-| options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
-
-## 💡 配置示例
-
-```javascript
-const obfuscatorConfig = {
   excludes: [],
   enable: true,
   log: true,
@@ -132,4 +103,23 @@ const obfuscatorConfig = {
     unicodeEscapeSequence: false,
   }
 };
+
+export default {
+  plugins: [
+    // vitePluginBundleObfuscator()
+    vitePluginBundleObfuscator(obfuscatorConfig)
+  ]
+};
 ```
+
+## 💪 配置
+
+| 属性                     | 描述                         | 类型                                                                                  | 默认值            | 版本     |
+|------------------------|----------------------------|-------------------------------------------------------------------------------------|----------------|--------|
+| threadPool             | 线程池的配置。                    | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false          | v1.2.0 |
+| apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
+| autoExcludeNodeModules | 启用自动排除node_modules。        | boolean                                                                             | false          | v1.0.9 |
+| log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true           | v1.0.4 |
+| enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true           | v1.0.1 |
+| excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []             | v1.0.0 |
+| options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
