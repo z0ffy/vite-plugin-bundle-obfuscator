@@ -11,7 +11,6 @@ JavaScript obfuscator plugin for Vite environments
 [![][npm-release-shield]][npm-release-link]
 [![][npm-downloads-shield]][npm-release-link]
 [![][github-releasedate-shield]][github-releasedate-link]
-[![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
