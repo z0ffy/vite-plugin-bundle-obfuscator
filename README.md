@@ -49,8 +49,8 @@ JavaScript obfuscator plugin for Vite environments
 ## ⚠️ Notice
 
 - If the obfuscation option stringArray is true. 
-- Your results may lose some bundles (in __vite__mapDeps array).
-- I'm looking for an accurate case.
+  - Your results may lose some bundles (in __vite__mapDeps array).
+  - I'm looking for an accurate case.
 
 ## 📦 Installation
 
