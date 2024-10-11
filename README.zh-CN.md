@@ -88,7 +88,7 @@ yarn add vite-plugin-bundle-obfuscator -D
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
-const obfuscatorConfig = {
+const defaultObfuscatorConfig = {
   excludes: [],
   enable: true,
   log: true,
@@ -128,7 +128,7 @@ const obfuscatorConfig = {
 export default {
   plugins: [
     // vitePluginBundleObfuscator()
-    vitePluginBundleObfuscator(obfuscatorConfig)
+    vitePluginBundleObfuscator(defaultObfuscatorConfig)
   ]
 };
 ```
@@ -137,15 +137,15 @@ export default {
 
 ---
 
-| 属性                     | 描述                         | 类型                                                                                  | 默认值            | 版本     |
-|------------------------|----------------------------|-------------------------------------------------------------------------------------|----------------|--------|
-| threadPool             | 线程池的配置。                    | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false          | v1.2.0 |
-| apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build          | v1.1.0 |
-| autoExcludeNodeModules | 启用自动排除node_modules。        | boolean                                                                             | false          | v1.0.9 |
-| log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true           | v1.0.4 |
-| enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true           | v1.0.1 |
-| excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []             | v1.0.0 |
-| options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
+| 属性                     | 描述                         | 类型                                                                                  | 默认值                     | 版本     |
+|------------------------|----------------------------|-------------------------------------------------------------------------------------|-------------------------|--------|
+| threadPool             | 线程池的配置。                    | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0 |
+| apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build                   | v1.1.0 |
+| autoExcludeNodeModules | 启用自动排除node_modules。        | boolean                                                                             | false                   | v1.0.9 |
+| log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true                    | v1.0.4 |
+| enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true                    | v1.0.1 |
+| excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []                      | v1.0.0 |
+| options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | defaultObfuscatorConfig | v1.0.0 |
 
 ## 📄 License
 
