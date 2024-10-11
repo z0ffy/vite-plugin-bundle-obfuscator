@@ -1,13 +1,12 @@
 <div align="center">
 
-<img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="" />
+<img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
 # vite-plugin-bundle-obfuscator
 
 JavaScript obfuscator plugin for Vite environments
 
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
-[![OSS Compass Analyze](https://oss-compass.org/badge/s6hwec8f.svg?metric=community)](https://oss-compass.org/analyze/s6hwec8f#community_service_support)
 [![][npm-release-shield]][npm-release-link]
 [![][npm-downloads-shield]][npm-release-link]
 [![][github-releasedate-shield]][github-releasedate-link]
@@ -15,7 +14,9 @@ JavaScript obfuscator plugin for Vite environments
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p align="center">English | <a href="./README.zh-CN.md">Chinese</a></p>
+<p align="center">
+  <strong>English</strong> | <a href="./README.zh-CN.md">中文</a>
+</p>
 
 ![](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
@@ -41,27 +42,48 @@ JavaScript obfuscator plugin for Vite environments
 
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
-## ✨ TODO
+## ⭐️ Features
 
-- [ ] 💎 ？support the node_modules split chunk
+---
+
+- [x] Supports JavaScript obfuscation in Vite projects.
+- [x] Customizable obfuscator options to fit your needs.
+- [x] Auto-excludes `node_modules`.
+- [x] Multi-threading support for better performance.
+- [ ] ？Support the node_modules split chunk.
 
 ## ⚠️ Notice
 
-- If the obfuscation option stringArray is true. 
-  - Your results may lose some bundles (in __vite__mapDeps array).
-  - I'm looking for an accurate case.
+---
+
+- If the obfuscation option stringArray is true.
+    - Your results may lose some bundles (in __vite__mapDeps array).
+    - I'm looking for an accurate case.
 
 ## 📦 Installation
 
-```shell
+---
+
+```bash
+# Using npm
 npm install vite-plugin-bundle-obfuscator -D
+
+# Using pnpm
+pnpm add vite-plugin-bundle-obfuscator -D
+
+# Using yarn
+yarn add vite-plugin-bundle-obfuscator -D
 ```
 
 ## 👨‍💻 Usage
 
-1. Run npm install vite-plugin-bundle-obfuscator -D
+---
+
+1. Install the plugin using your preferred package manager.
 2. Register the plugin in `vite.config.js`
-3. Set your own configuration or set empty to use default options
+3. Customize the obfuscator configuration or use the default options.
+
+Example:
 
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
@@ -111,7 +133,9 @@ export default {
 };
 ```
 
-## 💪 Config
+## 🛠️ Options
+
+---
 
 | Property Name          | Description                                                             | Type                                                                                | Default        | Version |
 |------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|----------------|---------|
@@ -122,3 +146,9 @@ export default {
 | enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true           | v1.0.1  |
 | excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []             | v1.0.0  |
 | options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | Config example | v1.0.0  |
+
+## 📄 License
+
+---
+
+[MIT](https://opensource.org/licenses/MIT) License Copyright (c) 2024-present, Zoffy

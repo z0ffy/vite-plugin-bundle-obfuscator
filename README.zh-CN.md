@@ -1,13 +1,12 @@
 <div align="center">
 
-<img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="" />
+<img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
 # vite-plugin-bundle-obfuscator
 
 适用于Vite环境的JavaScript混淆器插件
 
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
-[![OSS Compass Analyze](https://oss-compass.org/badge/s6hwec8f.svg?metric=community)](https://oss-compass.org/analyze/s6hwec8f#community_service_support)
 [![][npm-release-shield]][npm-release-link]
 [![][npm-downloads-shield]][npm-release-link]
 [![][github-releasedate-shield]][github-releasedate-link]
@@ -15,7 +14,9 @@
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p align="center"><a href="./README.md">English</a> | 中文</p>
+<p align="center">
+  <a href="./README.md">English</a> | <strong>中文</strong>
+</p>
 
 ![](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
@@ -41,27 +42,48 @@
 
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
-## ✨ TODO
+## ⭐️ 特性
 
-- [ ] 💎 ？支持node_modules拆分块
+---
+
+- [x] 支持Vite项目中的JavaScript混淆。
+- [x] 可定制的混淆器选项，以满足您的需求。
+- [x] 自动排除`node_modules`。
+- [x] 多线程支持，以获得更好的性能。
+- [ ] ？支持node_modules拆分块。
 
 ## ⚠️ 注意
 
+---
+
 - 如果混淆选项stringArray为真。
-  - 您的结果可能会丢失一些捆绑包（在__vite__mapDeps数组中）。
-  - 我正在寻找一个准确的案例。
+    - 您的结果可能会丢失一些捆绑包（在__vite__mapDeps数组中）。
+    - 我正在寻找一个准确的案例。
 
 ## 📦 安装
 
-```shell
+---
+
+```bash
+# 使用npm
 npm install vite-plugin-bundle-obfuscator -D
+
+# 使用pnpm
+pnpm add vite-plugin-bundle-obfuscator -D
+
+# 使用yarn
+yarn add vite-plugin-bundle-obfuscator -D
 ```
 
 ## 👨‍💻 使用
 
-1. 运行npm install vite-plugin-bundle-obfuscator -D
+---
+
+1. 使用您首选的软件包管理器安装插件。
 2. 在`vite.config.js`中注册插件
-3. 设置您自己的配置或设置为空以使用默认选项
+3. 自定义混淆器配置或使用默认选项。
+
+示例:
 
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
@@ -111,7 +133,9 @@ export default {
 };
 ```
 
-## 💪 配置
+## 🛠️ 选项
+
+---
 
 | 属性                     | 描述                         | 类型                                                                                  | 默认值            | 版本     |
 |------------------------|----------------------------|-------------------------------------------------------------------------------------|----------------|--------|
@@ -122,3 +146,9 @@ export default {
 | enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true           | v1.0.1 |
 | excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []             | v1.0.0 |
 | options                | JavaScript混淆器的选项。          | ObfuscatorOptions                                                                   | Config example | v1.0.0 |
+
+## 📄 License
+
+---
+
+[MIT](https://opensource.org/licenses/MIT) License Copyright (c) 2024-present, Zoffy
