@@ -80,7 +80,7 @@ yarn add vite-plugin-bundle-obfuscator -D
 ---
 
 1. 使用您首选的软件包管理器安装插件。
-2. 在`vite.config.js`中注册插件
+2. 在`vite.config.js`中注册插件。
 3. 自定义混淆器配置或使用默认选项。
 
 示例:
