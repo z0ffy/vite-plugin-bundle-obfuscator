@@ -53,7 +53,7 @@ export function getThreadPoolSize(finalConfig: Config): number {
   if (isBoolean(threadPool)) return defaultSize;
   if (isObject(threadPool)) {
     if (threadPool.enable) {
-      if (threadPool.size > defaultSize || !threadPool.size) return defaultSize;
+      if (!threadPool.size) return defaultSize;
       return threadPool.size;
     }
   }
