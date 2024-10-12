@@ -44,8 +44,6 @@ JavaScript obfuscator plugin for Vite environments
 
 ## ⭐️ Features
 
----
-
 - [x] Supports JavaScript obfuscation in Vite projects.
 - [x] Customizable obfuscator options to fit your needs.
 - [x] Auto-excludes `node_modules`.
@@ -54,15 +52,11 @@ JavaScript obfuscator plugin for Vite environments
 
 ## ⚠️ Notice
 
----
-
 - If the obfuscation option stringArray is true.
     - Your results may lose some bundles (in __vite__mapDeps array).
     - I'm looking for an accurate case.
 
 ## 📦 Installation
-
----
 
 ```bash
 # Using npm
@@ -76,8 +70,6 @@ yarn add vite-plugin-bundle-obfuscator -D
 ```
 
 ## 👨‍💻 Usage
-
----
 
 1. Install the plugin using your preferred package manager.
 2. Register the plugin in `vite.config.js`
@@ -135,8 +127,6 @@ export default {
 
 ## 🛠️ Options
 
----
-
 | Property Name          | Description                                                             | Type                                                                                | Default                 | Version |
 |------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|-------------------------|---------|
 | threadPool             | Configuration for the thread pool.                                      | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0  |
@@ -148,7 +138,5 @@ export default {
 | options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | defaultObfuscatorConfig | v1.0.0  |
 
 ## 📄 License
-
----
 
 [MIT](https://opensource.org/licenses/MIT) License Copyright (c) 2024-present, Zoffy
