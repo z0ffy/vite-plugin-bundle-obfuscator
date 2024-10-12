@@ -4,7 +4,7 @@
 
 # vite-plugin-bundle-obfuscator
 
-JavaScript obfuscator plugin for Vite environments
+JavaScript `obfuscator` plugin for `Vite` environments
 
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
 [![][npm-release-shield]][npm-release-link]
@@ -44,16 +44,16 @@ JavaScript obfuscator plugin for Vite environments
 
 ## ⭐️ Features
 
-- [x] Supports JavaScript obfuscation in Vite projects.
-- [x] Customizable obfuscator options to fit your needs.
-- [x] Auto-excludes `node_modules`.
-- [x] Multi-threading support for better performance.
-- [ ] ？Support the node_modules split chunk.
+- [x] ![](https://avatars.githubusercontent.com/u/65625612?s=14) Supports `JavaScript obfuscation` in `Vite` projects.
+- [x] ⚙️ Customizable obfuscator options to fit your needs.
+- [x] 🛡️ Auto-excludes `node_modules`.
+- [x] 🚀 Multi-threading support for better performfance.
+- [ ] ？Support the `node_modules` split chunk.
 
 ## ⚠️ Notice
 
-- If the obfuscation option stringArray is true.
-    - Your results may lose some bundles (in __vite__mapDeps array).
+- If the obfuscation option `stringArray` is `true`.
+    - Your results may lose some bundles (in `__vite__mapDeps` array).
     - I'm looking for an accurate case.
 
 ## 📦 Installation
