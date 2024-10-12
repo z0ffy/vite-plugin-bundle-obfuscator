@@ -44,11 +44,11 @@ JavaScript `obfuscator` plugin for `Vite` environments
 
 ## ⭐️ Features
 
-- [x] ![](https://avatars.githubusercontent.com/u/65625612?s=14) Supports `JavaScript obfuscation` in `Vite` projects.
+- [x] ⚡ Supports `JavaScript obfuscation` in `Vite` projects.
 - [x] ⚙️ Customizable obfuscator options to fit your needs.
 - [x] 🛡️ Auto-excludes `node_modules`.
 - [x] 🚀 Multi-threading support for better performfance.
-- [ ] ？Support the `node_modules` split chunk.
+- [ ] 📦 ？Support the `node_modules` split chunk.
 
 ## ⚠️ Notice
 
