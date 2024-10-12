@@ -5,7 +5,7 @@
   "description": "JavaScript obfuscator plugin for Vite environments",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup src/index.ts",
+    "build": "tsup",
     "start": "npm run build -- --watch"
   },
   "keywords": [
@@ -32,6 +32,7 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.7.5",
     "tsup": "^8.3.0",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
