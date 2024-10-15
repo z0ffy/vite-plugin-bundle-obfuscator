@@ -1,4 +1,5 @@
-import type {Rollup} from "vite";
+import * as vite from "vite";
+import {Rollup} from "vite";
 import {BundleList, Config, ObfuscationResult} from "../type";
 import os from 'node:os';
 import {isBoolean, isFileNameExcluded, isObject} from "./is";
@@ -23,6 +24,10 @@ export class Log {
   info(msg: string): void {
     this._log(msg);
   }
+}
+
+export function getViteMajorVersion(): number {
+  return vite?.version ? Number(vite.version.split('.')[0]) : 2
 }
 
 export function formatTime(ms: number): string {
