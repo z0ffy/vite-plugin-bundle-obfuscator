@@ -1,21 +1,17 @@
 import type {IndexHtmlTransformHook, PluginOption, Rollup} from 'vite';
-import * as vite from 'vite';
 import {Config, ViteConfigFn} from "./type";
 import {
   createWorkerTask,
   formatTime,
   getThreadPoolSize,
   getValidBundleList,
+  getViteMajorVersion,
   isEnableThreadPool,
   Log,
   obfuscateBundle
 } from "./utils";
 import {isArray, isFunction, isObject} from "./utils/is";
 import {defaultConfig, LOG_COLOR, NODE_MODULES} from "./utils/constants";
-
-function getViteMajorVersion() {
-  return vite?.version ? Number(vite.version.split('.')[0]) : 2
-}
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
   const finalConfig = {...defaultConfig, ...config};
