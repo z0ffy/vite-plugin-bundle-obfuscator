@@ -13,7 +13,10 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "types": [
+      "vitest/importMeta"
+    ]
   },
   "include": [
     "src/**/*",
