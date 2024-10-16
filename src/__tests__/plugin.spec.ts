@@ -1,6 +1,6 @@
 import {expect, describe, it, vi} from "vitest";
-import {formatTime, getThreadPoolSize, getValidBundleList, Log} from "../src/utils";
-import {BundleList, Config} from "../src/type";
+import {formatTime, getThreadPoolSize, getValidBundleList, Log} from "../utils";
+import {BundleList, Config} from "../type";
 
 const defaultConfig: Config = {
   enable: true,

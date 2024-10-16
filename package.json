@@ -6,7 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "start": "npm run build -- --watch"
+    "start": "npm run build -- --watch",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "keywords": [
     "vite",
