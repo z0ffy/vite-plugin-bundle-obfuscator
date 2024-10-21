@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.2.1
+
+- feat: add vitest
+- fix: esm __dirname
+
 ## 1.2.0
 
 * feat: support threadPool
