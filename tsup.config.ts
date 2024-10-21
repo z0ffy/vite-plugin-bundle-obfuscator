@@ -1,8 +1,10 @@
-import {defineConfig} from 'tsup'
+import {defineConfig, Options} from 'tsup';
 
-export default defineConfig({
+const baseConfig: Options = {
   entry: ['src/index.ts', 'src/worker/index.ts'],
-  format: ['esm', 'cjs'],
+  target: 'es2020',
+  shims: true,
+  outDir: 'dist',
   external: ['javascript-obfuscator', 'vite'],
   dts: {
     entry: 'src/index.ts',
@@ -12,4 +14,21 @@ export default defineConfig({
   sourcemap: false,
   clean: true,
   minify: true,
-})
+};
+
+export default defineConfig([
+  {
+    ...baseConfig,
+    format: ['cjs'],
+    define: {
+      WORKER_FILE_PATH: JSON.stringify('./worker/index.js'),
+    },
+  },
+  {
+    ...baseConfig,
+    format: ['esm'],
+    define: {
+      WORKER_FILE_PATH: JSON.stringify('./worker/index.mjs'),
+    },
+  },
+]);

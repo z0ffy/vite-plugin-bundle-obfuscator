@@ -86,7 +86,7 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
 
 export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(path.join(__dirname, './worker/index.js'));
+    const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
     worker.postMessage({config: finalConfig, chunk});
 
     worker.on('message', (value) => {
