@@ -48,13 +48,14 @@
 - [x] ⚙️ 可定制的混淆器选项，以满足您的需求。
 - [x] 🛡️ 自动排除`node_modules`。
 - [x] 🚀 多线程支持，以获得更好的性能。
-- [ ] 📦 ？支持`node_modules`拆分块。
+- [ ] 📦 支持`node_modules`拆分块。
 
 ## ⚠️ 注意
 
 - 如果混淆选项`stringArray`为`true`。
     - 您的结果可能会丢失一些捆绑包（在`__vite__mapDeps`数组中）。
     - 我正在寻找一个准确的案例。
+- 如果遇到内存溢出，修改打包命令为`"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`,`max-old-space-size`的值根据配置自行设置
 
 ## 📦 安装
 
