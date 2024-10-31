@@ -40,6 +40,8 @@ export const defaultConfig: Readonly<Config> = {
 
 export const NODE_MODULES = 'vendor-modules';
 
+export const CHUNK_PREFIX = 'vendor-';
+
 export const LOG_COLOR = Object.freeze({
   info: '\x1b[36m', // Cyan
   warn: '\x1b[33m', // Yellow

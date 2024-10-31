@@ -3,11 +3,14 @@ import {Config, ViteConfigFn} from "./type";
 import {
   createWorkerTask,
   formatTime,
+  getManualChunks,
   getThreadPoolSize,
   getValidBundleList,
   getViteMajorVersion,
+  isEnableAutoExcludesNodeModules,
   isEnableThreadPool,
   Log,
+  modifyChunkName,
   obfuscateBundle
 } from "./utils";
 import {isArray, isFunction, isObject} from "./utils/is";
@@ -18,18 +21,32 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const _log = new Log(finalConfig.log);
 
   const modifyConfigHandler: ViteConfigFn = (config) => {
-    if (!finalConfig.enable || !finalConfig.autoExcludeNodeModules) return;
+    if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig)) return;
 
     config.build = config.build || {};
     config.build.rollupOptions = config.build.rollupOptions || {};
     let {output} = config.build.rollupOptions;
 
-    const defaultManualChunks = (id: string) => {
-      finalConfig.excludes.push(NODE_MODULES);
-      if (id.includes('node_modules')) return NODE_MODULES;
+    const manualChunks = [...getManualChunks(finalConfig)];
+
+    const addChunks2Excludes = (): void => {
+      finalConfig.excludes.push(NODE_MODULES, ...manualChunks.map(modifyChunkName));
+    }
+
+    const getChunkName = (id: string): string => {
+      for (const chunkName of manualChunks) {
+        if (id.includes(chunkName)) return modifyChunkName(chunkName);
+      }
+
+      return NODE_MODULES;
+    };
+
+    const defaultManualChunks = (id: string): string | undefined => {
+      if (id.includes('node_modules')) return getChunkName(id);
     };
 
     if (!output) {
+      addChunks2Excludes();
       config.build.rollupOptions.output = {manualChunks: defaultManualChunks};
       return;
     }
@@ -41,16 +58,15 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
     if (isObject(output)) {
       if (!output.manualChunks) {
+        addChunks2Excludes();
         output.manualChunks = defaultManualChunks;
       } else if (isObject(output.manualChunks)) {
         _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
       } else if (isFunction(output.manualChunks)) {
-        const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
-        finalConfig.excludes.push(NODE_MODULES);
-
+        addChunks2Excludes();
         output.manualChunks = (id: string, meta: Rollup.ManualChunkMeta) => {
-          if (id.includes('node_modules')) return NODE_MODULES;
-          return originalManualChunks(id, meta);
+          const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
+          return defaultManualChunks(id) || originalManualChunks(id, meta);
         };
       }
     }

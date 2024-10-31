@@ -48,14 +48,16 @@ JavaScript `obfuscator` plugin for `Vite` environments
 - [x] ⚙️ Customizable obfuscator options to fit your needs.
 - [x] 🛡️ Auto-excludes `node_modules`.
 - [x] 🚀 Multi-threading support for better performfance.
-- [ ] 📦 Support the `node_modules` split chunk.
+- [x] 📦 Support the `node_modules` split chunk.
 
 ## ⚠️ Notice
 
 - If the obfuscation option `stringArray` is `true`.
     - Your results may lose some bundles (in `__vite__mapDeps` array).
     - I'm looking for an accurate case.
-- If a memory overflow occurs, modify the packaging command to `"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`, where `max-old-space-size` is set according to the configuration.
+- If a memory overflow occurs, modify the packaging command to
+  `"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`, where `max-old-space-size` is set according
+  to the configuration.
 
 ## 📦 Installation
 
@@ -86,7 +88,9 @@ const defaultObfuscatorConfig = {
   enable: true,
   log: true,
   autoExcludeNodeModules: false,
+  // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
   threadPool: false,
+  // threadPool: { enable: true, size: 4 }
   options: {
     compact: true,
     controlFlowFlattening: true,
@@ -128,15 +132,15 @@ export default {
 
 ## 🛠️ Options
 
-| Property Name          | Description                                                             | Type                                                                                | Default                 | Version |
-|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|-------------------------|---------|
-| threadPool             | Configuration for the thread pool.                                      | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0  |
-| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build                   | v1.1.0  |
-| autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean                                                                             | false                   | v1.0.9  |
-| log                    | Show or hide log output.                                                | boolean                                                                             | true                    | v1.0.4  |
-| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true                    | v1.0.1  |
-| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []                      | v1.0.0  |
-| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | defaultObfuscatorConfig | v1.0.0  |
+| Property Name          | Description                                                             | Type                                                                                | Default                 | Version                                                         |
+|------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------|-------------------------|-----------------------------------------------------------------|
+| threadPool             | Configuration for the thread pool.                                      | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0                                                          |
+| apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build                   | v1.1.0                                                          |
+| autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean \| ({ enable: true; manualChunks: string[] } \| { enable: false })          | false                   | v1.0.9 (originally boolean, extended to current type in v1.3.0) |
+| log                    | Show or hide log output.                                                | boolean                                                                             | true                    | v1.0.4                                                          |
+| enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true                    | v1.0.1                                                          |
+| excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []                      | v1.0.0                                                          |
+| options                | Options for the JavaScript obfuscator.                                  | ObfuscatorOptions                                                                   | defaultObfuscatorConfig | v1.0.0                                                          |
 
 ## 📄 License
 

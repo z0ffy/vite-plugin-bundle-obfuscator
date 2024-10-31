@@ -6,6 +6,7 @@ import {isBoolean, isFileNameExcluded, isObject} from "./is";
 import {Worker} from "node:worker_threads";
 import path from "node:path";
 import javascriptObfuscator from "javascript-obfuscator";
+import {CHUNK_PREFIX} from "./constants";
 
 export class Log {
   private readonly _log: (msg: string) => void;
@@ -42,13 +43,31 @@ export function formatTime(ms: number): string {
   ].filter(Boolean).join('');
 }
 
-export function isEnableThreadPool(finalConfig: Config): boolean {
-  const {threadPool} = finalConfig;
-
-  if (isBoolean(threadPool)) return threadPool;
-  if (isObject(threadPool)) return threadPool.enable;
-
+export function isEnabledFeature(featureConfig: boolean | { enable: boolean }): boolean {
+  if (isBoolean(featureConfig)) return featureConfig;
+  if (isObject(featureConfig)) return featureConfig.enable;
   return false;
+}
+
+export function isEnableThreadPool(finalConfig: Config): boolean {
+  return isEnabledFeature(finalConfig.threadPool);
+}
+
+export function isEnableAutoExcludesNodeModules(finalConfig: Config): boolean {
+  return isEnabledFeature(finalConfig.autoExcludeNodeModules);
+}
+
+export function getManualChunks(finalConfig: Config): string[] {
+  const {autoExcludeNodeModules} = finalConfig;
+
+  if (isBoolean(autoExcludeNodeModules)) return [];
+  if (isObject(autoExcludeNodeModules) && autoExcludeNodeModules.enable) return autoExcludeNodeModules.manualChunks;
+
+  return [];
+}
+
+export function modifyChunkName(chunkName: string): string {
+  return CHUNK_PREFIX + chunkName;
 }
 
 export function getThreadPoolSize(finalConfig: Config): number {

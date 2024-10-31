@@ -29,9 +29,15 @@ export interface Config {
    */
   log: boolean;
   /**
-   * Enable auto exclude node_modules.
-   * */
-  autoExcludeNodeModules: boolean;
+   * Configuration for auto-excluding `node_modules`.
+   * Can be either:
+   * - A boolean value.
+   * - An object with `enable` and `manualChunks` properties.
+   *   - `enable`: `true` to enable the exclusion with specified chunks.
+   *   - `manualChunks`: an array of package names (from `node_modules`) to exclude as separate chunks (effective when `enable` is `true`).
+   *   - `enable`: `false` to disable exclusion (no `manualChunks` needed).
+   */
+  autoExcludeNodeModules: boolean | ({ enable: true; manualChunks: string[] } | { enable: false });
   /**
    * Determines if the plugin should apply during `build` or `serve`.
    * It uses the apply type defined in Vite.
