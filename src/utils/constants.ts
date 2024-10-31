@@ -38,7 +38,9 @@ export const defaultConfig: Readonly<Config> = {
   }
 };
 
-export const NODE_MODULES = 'vendor-modules';
+export const NODE_MODULES = 'node_modules';
+
+export const VENDOR_MODULES = 'vendor-modules';
 
 export const CHUNK_PREFIX = 'vendor-';
 

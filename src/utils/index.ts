@@ -6,12 +6,12 @@ import {isBoolean, isFileNameExcluded, isObject} from "./is";
 import {Worker} from "node:worker_threads";
 import path from "node:path";
 import javascriptObfuscator from "javascript-obfuscator";
-import {CHUNK_PREFIX} from "./constants";
+import {CHUNK_PREFIX, VENDOR_MODULES} from "./constants";
 
 export class Log {
   private readonly _log: (msg: string) => void;
 
-  constructor(private show: boolean) {
+  constructor(show: boolean) {
     this._log = show ? console.log.bind(console) : this.noop;
   }
 
@@ -93,6 +93,14 @@ export function getValidBundleList(finalConfig: Config, bundle: Rollup.OutputBun
     }
   });
   return validItems;
+}
+
+export function getChunkName(id: string, manualChunks: string[]): string {
+  for (const chunkName of manualChunks) {
+    if (id.includes(chunkName)) return modifyChunkName(chunkName);
+  }
+
+  return VENDOR_MODULES;
 }
 
 export function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): string {

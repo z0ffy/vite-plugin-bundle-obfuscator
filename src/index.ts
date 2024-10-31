@@ -3,6 +3,7 @@ import {Config, ViteConfigFn} from "./type";
 import {
   createWorkerTask,
   formatTime,
+  getChunkName,
   getManualChunks,
   getThreadPoolSize,
   getValidBundleList,
@@ -14,7 +15,7 @@ import {
   obfuscateBundle
 } from "./utils";
 import {isArray, isFunction, isObject} from "./utils/is";
-import {defaultConfig, LOG_COLOR, NODE_MODULES} from "./utils/constants";
+import {defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES} from "./utils/constants";
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
   const finalConfig = {...defaultConfig, ...config};
@@ -29,20 +30,13 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
     const manualChunks = [...getManualChunks(finalConfig)];
 
-    const addChunks2Excludes = (): void => {
-      finalConfig.excludes.push(NODE_MODULES, ...manualChunks.map(modifyChunkName));
+    const addChunks2Excludes = () => {
+      finalConfig.excludes.push(VENDOR_MODULES, ...manualChunks.map(modifyChunkName));
     }
 
-    const getChunkName = (id: string): string => {
-      for (const chunkName of manualChunks) {
-        if (id.includes(chunkName)) return modifyChunkName(chunkName);
-      }
-
-      return NODE_MODULES;
-    };
-
-    const defaultManualChunks = (id: string): string | undefined => {
-      if (id.includes('node_modules')) return getChunkName(id);
+    const defaultManualChunks = (id: string) => {
+      if (id.includes(NODE_MODULES)) return getChunkName(id, manualChunks);
+      return undefined;
     };
 
     if (!output) {
