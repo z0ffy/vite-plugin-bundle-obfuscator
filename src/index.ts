@@ -63,9 +63,10 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
       } else if (isObject(output.manualChunks)) {
         _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
       } else if (isFunction(output.manualChunks)) {
+        const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
+
         addChunks2Excludes();
         output.manualChunks = (id: string, meta: Rollup.ManualChunkMeta) => {
-          const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
           return defaultManualChunks(id) || originalManualChunks(id, meta);
         };
       }
