@@ -45,9 +45,9 @@ JavaScript `obfuscator` plugin for `Vite` environments
 ## ⭐️ Features
 
 - [x] ⚡ Supports `JavaScript obfuscation` in `Vite` projects.
+- [x] 🚀 Multi-threading support for better performfance.
 - [x] ⚙️ Customizable obfuscator options to fit your needs.
 - [x] 🛡️ Auto-excludes `node_modules`.
-- [x] 🚀 Multi-threading support for better performfance.
 - [x] 📦 Support the `node_modules` split chunk.
 
 ## ⚠️ Notice
