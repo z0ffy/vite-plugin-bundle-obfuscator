@@ -61,7 +61,7 @@ export function getManualChunks(finalConfig: Config): string[] {
   const {autoExcludeNodeModules} = finalConfig;
 
   if (isBoolean(autoExcludeNodeModules)) return [];
-  if (isObject(autoExcludeNodeModules) && autoExcludeNodeModules.enable) return autoExcludeNodeModules.manualChunks;
+  if (isObject(autoExcludeNodeModules) && autoExcludeNodeModules.enable) return autoExcludeNodeModules.manualChunks || [];
 
   return [];
 }
