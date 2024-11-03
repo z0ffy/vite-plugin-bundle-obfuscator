@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0
+
+- feat: support node_modules split chunk
+
 ## 1.2.1
 
 - feat: add vitest
