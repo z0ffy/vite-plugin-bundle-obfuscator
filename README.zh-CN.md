@@ -56,7 +56,8 @@
     - 您的结果可能会丢失一些捆绑包（在`__vite__mapDeps`数组中）。
     - 我正在寻找一个准确的案例。
 - 如果遇到内存溢出，修改打包命令为`"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`,
-  `max-old-space-size`的值根据配置自行设置
+  `max-old-space-size`的值根据配置自行设置。
+- 在设置`node_modules`分包时，请把准确的包名前置。例如：["vue-router", "vue"]，`"vue"`可以同时匹配到`vue`以及`vue-router`。
 
 ## 📦 安装
 
