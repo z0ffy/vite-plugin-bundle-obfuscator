@@ -44,11 +44,11 @@
 
 ## ⭐️ 特性
 
-- [x] ⚡ 支持`Vite`项目中的`JavaScript`混淆。
-- [x] 🚀 多线程支持，以获得更好的性能。
-- [x] ⚙️ 可定制的混淆器选项，以满足您的需求。
-- [x] 🛡️ 自动排除`node_modules`。
-- [x] 📦 支持`node_modules`拆分块。
+- ✅ ⚡ 支持`Vite`项目中的`JavaScript`混淆。
+- ✅ 🚀 多线程支持，以获得更好的性能。
+- ✅ ⚙️ 可定制的混淆器选项，以满足您的需求。
+- ✅ 🛡️ 自动排除`node_modules`。
+- ✅ 📦 支持`node_modules`拆分块。
 
 ## ⚠️ 注意
 
@@ -83,7 +83,8 @@ yarn add vite-plugin-bundle-obfuscator -D
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
-const defaultObfuscatorConfig = {
+// 全部配置
+const allObfuscatorConfig = {
   excludes: [],
   enable: true,
   log: true,
@@ -124,8 +125,28 @@ const defaultObfuscatorConfig = {
 
 export default {
   plugins: [
-    // vitePluginBundleObfuscator()
     vitePluginBundleObfuscator(defaultObfuscatorConfig)
+  ]
+};
+
+// 简化配置
+const minimizeObfuscatorConfig = {
+  autoExcludeNodeModules: true,
+  // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
+  threadPool: true,
+  // threadPool: { enable: true, size: 4 }
+};
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator(minimizeObfuscatorConfig)
+  ]
+};
+
+// 默认配置
+export default {
+  plugins: [
+    vitePluginBundleObfuscator()
   ]
 };
 ```
