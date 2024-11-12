@@ -152,6 +152,13 @@ export default {
 };
 ```
 
+## 🚀 Performance Comparison
+
+With **7000+ modules** and **400+ bundles** on a **4C 8G** machine:
+
+- **ThreadPool Enabled**   : 🟩🟩🟩⬜⬜⬜⬜⬜⬜ (About 30 seconds)
+- **ThreadPool Disabled**  : 🟥🟥🟥🟥🟥🟥🟥🟥🟥 (About 90 seconds)
+
 ## 🛠️ Options
 
 | Property Name          | Description                                                             | Type                                                                                | Default                 | Version                                                         |
