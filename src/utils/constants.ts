@@ -1,4 +1,4 @@
-import {Config} from "../type";
+import { Config } from '../type';
 
 export const defaultConfig: Readonly<Config> = {
   excludes: [],
@@ -35,7 +35,7 @@ export const defaultConfig: Readonly<Config> = {
     stringArrayWrappersType: 'variable',
     stringArrayThreshold: 0.75,
     unicodeEscapeSequence: false,
-  }
+  },
 };
 
 export const NODE_MODULES = 'node_modules';
@@ -47,4 +47,4 @@ export const CHUNK_PREFIX = 'vendor-';
 export const LOG_COLOR = Object.freeze({
   info: '\x1b[36m', // Cyan
   warn: '\x1b[33m', // Yellow
-})
+});

@@ -1,12 +1,12 @@
-import * as vite from "vite";
-import {Rollup} from "vite";
-import {BundleList, Config, ObfuscationResult} from "../type";
+import * as vite from 'vite';
+import { Rollup } from 'vite';
+import { BundleList, Config, ObfuscationResult } from '../type';
 import os from 'node:os';
-import {isBoolean, isFileNameExcluded, isObject} from "./is";
-import {Worker} from "node:worker_threads";
-import path from "node:path";
-import javascriptObfuscator from "javascript-obfuscator";
-import {CHUNK_PREFIX, VENDOR_MODULES} from "./constants";
+import { isBoolean, isFileNameExcluded, isObject } from './is';
+import { Worker } from 'node:worker_threads';
+import path from 'node:path';
+import javascriptObfuscator from 'javascript-obfuscator';
+import { CHUNK_PREFIX, VENDOR_MODULES } from './constants';
 
 export class Log {
   private readonly _log: (msg: string) => void;
@@ -15,7 +15,7 @@ export class Log {
     this._log = show ? console.log.bind(console) : this.noop;
   }
 
-  private noop(_: string): void {
+  private noop(): void {
   }
 
   forceLog(...reset: (string | number)[]): void {
@@ -28,7 +28,7 @@ export class Log {
 }
 
 export function getViteMajorVersion(): number {
-  return vite?.version ? Number(vite.version.split('.')[0]) : 2
+  return vite?.version ? Number(vite.version.split('.')[0]) : 2;
 }
 
 export function formatTime(ms: number): string {
@@ -39,7 +39,7 @@ export function formatTime(ms: number): string {
   return [
     hours ? `${hours}h ` : '',
     minutes ? `${minutes}m ` : '',
-    seconds || (!hours && !minutes) ? `${seconds}s` : ''
+    seconds || (!hours && !minutes) ? `${seconds}s` : '',
   ].filter(Boolean).join('');
 }
 
@@ -58,7 +58,7 @@ export function isEnableAutoExcludesNodeModules(finalConfig: Config): boolean {
 }
 
 export function getManualChunks(finalConfig: Config): string[] {
-  const {autoExcludeNodeModules} = finalConfig;
+  const { autoExcludeNodeModules } = finalConfig;
 
   if (isBoolean(autoExcludeNodeModules)) return [];
   if (isObject(autoExcludeNodeModules) && autoExcludeNodeModules.enable) return autoExcludeNodeModules.manualChunks || [];
@@ -71,7 +71,7 @@ export function modifyChunkName(chunkName: string): string {
 }
 
 export function getThreadPoolSize(finalConfig: Config): number {
-  const {threadPool} = finalConfig;
+  const { threadPool } = finalConfig;
   const defaultSize = os.cpus().length;
 
   if (isBoolean(threadPool)) return defaultSize;
@@ -114,7 +114,7 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
 export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
-    worker.postMessage({config: finalConfig, chunk});
+    worker.postMessage({ config: finalConfig, chunk });
 
     worker.on('message', (value) => {
       chunk.forEach(([fileName, bundleItem]) => {

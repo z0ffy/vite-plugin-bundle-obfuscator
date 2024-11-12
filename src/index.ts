@@ -1,5 +1,5 @@
-import type {IndexHtmlTransformHook, PluginOption, Rollup} from 'vite';
-import {Config, ViteConfigFn} from "./type";
+import type { IndexHtmlTransformHook, PluginOption, Rollup } from 'vite';
+import { Config, ViteConfigFn } from './type';
 import {
   createWorkerTask,
   formatTime,
@@ -12,13 +12,13 @@ import {
   isEnableThreadPool,
   Log,
   modifyChunkName,
-  obfuscateBundle
-} from "./utils";
-import {isArray, isFunction, isObject} from "./utils/is";
-import {defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES} from "./utils/constants";
+  obfuscateBundle,
+} from './utils';
+import { isArray, isFunction, isObject } from './utils/is';
+import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
-  const finalConfig = {...defaultConfig, ...config};
+  const finalConfig = { ...defaultConfig, ...config };
   const _log = new Log(finalConfig.log);
 
   const modifyConfigHandler: ViteConfigFn = (config) => {
@@ -26,13 +26,13 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
     config.build = config.build || {};
     config.build.rollupOptions = config.build.rollupOptions || {};
-    let {output} = config.build.rollupOptions;
+    const { output } = config.build.rollupOptions;
 
     const manualChunks = [...getManualChunks(finalConfig)];
 
     const addChunks2Excludes = () => {
       finalConfig.excludes.push(VENDOR_MODULES, ...manualChunks.map(modifyChunkName));
-    }
+    };
 
     const defaultManualChunks = (id: string) => {
       if (id.includes(NODE_MODULES)) return getChunkName(id, manualChunks);
@@ -41,7 +41,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
     if (!output) {
       addChunks2Excludes();
-      config.build.rollupOptions.output = {manualChunks: defaultManualChunks};
+      config.build.rollupOptions.output = { manualChunks: defaultManualChunks };
       return;
     }
 
@@ -67,7 +67,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     }
   };
 
-  const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, {bundle}) => {
+  const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, { bundle }) => {
     if (!finalConfig.enable || !bundle) return html;
 
     _log.forceLog('starting obfuscation process...');
@@ -103,10 +103,10 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     config: modifyConfigHandler,
     transformIndexHtml: getViteMajorVersion() >= 5 ? {
       order: 'post',
-      handler: transformIndexHtmlHandler
+      handler: transformIndexHtmlHandler,
     } : {
       enforce: 'post',
-      transform: transformIndexHtmlHandler
-    }
+      transform: transformIndexHtmlHandler,
+    },
   };
 }

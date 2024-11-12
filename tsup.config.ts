@@ -1,4 +1,4 @@
-import {defineConfig, Options} from 'tsup';
+import { defineConfig, Options } from 'tsup';
 
 const baseConfig: Options = {
   entry: ['src/index.ts', 'src/worker/index.ts'],

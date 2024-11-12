@@ -1,13 +1,13 @@
-import type {ObfuscatorOptions} from "javascript-obfuscator";
-import type {Plugin, Rollup} from "vite";
+import type { ObfuscatorOptions } from 'javascript-obfuscator';
+import type { Plugin, Rollup } from 'vite';
 
 export type ViteConfigFn = Plugin['config'];
 
 export type BundleList = Array<[string, Rollup.OutputChunk]>;
 
 export interface WorkerMessage {
-  config: Config,
-  chunk: BundleList
+  config: Config;
+  chunk: BundleList;
 }
 
 export interface ObfuscationResult {
