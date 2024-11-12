@@ -44,11 +44,11 @@ JavaScript `obfuscator` plugin for `Vite` environments
 
 ## ⭐️ Features
 
-- [x] ⚡ Supports `JavaScript obfuscation` in `Vite` projects.
-- [x] 🚀 Multi-threading support for better performfance.
-- [x] ⚙️ Customizable obfuscator options to fit your needs.
-- [x] 🛡️ Auto-excludes `node_modules`.
-- [x] 📦 Support the `node_modules` split chunk.
+- ✅ ⚡ Supports `JavaScript obfuscation` in `Vite` projects.
+- ✅ 🚀 Multi-threading support for better performfance.
+- ✅ ⚙️ Customizable obfuscator options to fit your needs.
+- ✅ 🛡️ Auto-excludes `node_modules`.
+- ✅ 📦 Support the `node_modules` split chunk.
 
 ## ⚠️ Notice
 
@@ -84,13 +84,14 @@ Example:
 ```javascript
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
-const defaultObfuscatorConfig = {
+// All configurations
+const allObfuscatorConfig = {
   excludes: [],
   enable: true,
   log: true,
-  autoExcludeNodeModules: false,
+  autoExcludeNodeModules: true,
   // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
-  threadPool: false,
+  threadPool: true,
   // threadPool: { enable: true, size: 4 }
   options: {
     compact: true,
@@ -125,11 +126,38 @@ const defaultObfuscatorConfig = {
 
 export default {
   plugins: [
-    // vitePluginBundleObfuscator()
-    vitePluginBundleObfuscator(defaultObfuscatorConfig)
+    vitePluginBundleObfuscator(allObfuscatorConfig)
+  ]
+};
+
+// Simplified configurations
+const minimizeObfuscatorConfig = {
+  autoExcludeNodeModules: true,
+  // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
+  threadPool: true,
+  // threadPool: { enable: true, size: 4 }
+};
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator(minimizeObfuscatorConfig)
+  ]
+};
+
+// Default configurations
+export default {
+  plugins: [
+    vitePluginBundleObfuscator()
   ]
 };
 ```
+
+## 🚀 Performance Comparison
+
+With **7000+ modules** and **400+ bundles** on a **4C 8G** machine:
+
+- **ThreadPool Enabled**   : 🟩🟩🟩⬜⬜⬜⬜⬜⬜ (About 30 seconds)
+- **ThreadPool Disabled**  : 🟥🟥🟥🟥🟥🟥🟥🟥🟥 (About 90 seconds)
 
 ## 🛠️ Options
 
