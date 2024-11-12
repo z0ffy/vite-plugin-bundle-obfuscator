@@ -1,5 +1,16 @@
-.idea
-.DS_Store
-dist
+# Dependency directories
 node_modules
+
+# Build output
+dist
+
+# Editor directories and files
+.idea
+.vscode
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+
+# Logs and debugging
 coverage
