@@ -2,6 +2,11 @@
 
 ### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.0...HEAD) - 
 
+- docs: update README.md
+- chore: update doc
+- chore(deps-dev): bump eslint from 9.14.0 to 9.15.0
+- chore(deps-dev): bump @eslint/js from 9.14.0 to 9.15.0
+- chore: add auto-changelog
 - chore: update ci
 - chore: add lint
 - chore: update .gitignore
