@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center;">
 
 <img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
@@ -14,7 +14,7 @@ JavaScript `obfuscator` plugin for `Vite` environments
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p align="center">
+<p style="text-align:center;">
   <strong>English</strong> | <a href="./README.zh-CN.md">中文</a>
 </p>
 
@@ -58,7 +58,20 @@ JavaScript `obfuscator` plugin for `Vite` environments
 - If a memory overflow occurs, modify the packaging command to
   `"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`, where `max-old-space-size` is set according
   to the configuration.
-- When setting up `node_modules` split chunk, please place the accurate package name at the front. For example: ["vue-router", "vue"], "vue" can match both "vue" and "vue-router" at the same time.
+- When setting up `node_modules` split chunk, please place the accurate package name at the front. For
+  example: ["vue-router", "vue"], "vue" can match both "vue" and "vue-router" at the same time.
+
+## 🌐 Online
+
+✦ [Vite - Vanilla](https://stackblitz.com/edit/vitejs-vite-zsytij?file=vite.config.js)
+✦ [Vite - Vue](https://stackblitz.com/edit/vitejs-vite-ywho91?file=vite.config.js)
+✦ [Vite - React](https://stackblitz.com/edit/vitejs-vite-wyeur4?file=vite.config.js)
+✦ [Vite - PReact](https://stackblitz.com/edit/vitejs-vite-oujmks?file=vite.config.js)
+✦ [Vite - lit](https://stackblitz.com/edit/vitejs-vite-ru4gws?file=vite.config.js)
+✦ [Vite - Svelte](https://stackblitz.com/edit/vitejs-vite-fthdtu?file=vite.config.js)
+✦ [Vite - Solid](https://stackblitz.com/edit/vitejs-vite-dcx3eh?file=vite.config.js)
+✦ [Vite - Qwik](https://stackblitz.com/edit/vitejs-vite-i2bjvq?file=vite.config.js)
+✦ ...
 
 ## 📦 Installation
 

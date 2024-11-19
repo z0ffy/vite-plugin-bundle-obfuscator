@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center;">
 
 <img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
@@ -14,7 +14,7 @@
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p align="center">
+<p style="text-align:center;">
   <a href="./README.md">English</a> | <strong>中文</strong>
 </p>
 
@@ -58,6 +58,18 @@
 - 如果遇到内存溢出，修改打包命令为`"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`,
   `max-old-space-size`的值根据配置自行设置。
 - 在设置`node_modules`分包时，请把准确的包名前置。例如：["vue-router", "vue"]，`"vue"`可以同时匹配到`vue`以及`vue-router`。
+
+## 🌐 在线试用
+
+✦ [Vite - Vanilla](https://stackblitz.com/edit/vitejs-vite-zsytij?file=vite.config.js)
+✦ [Vite - Vue](https://stackblitz.com/edit/vitejs-vite-ywho91?file=vite.config.js)
+✦ [Vite - React](https://stackblitz.com/edit/vitejs-vite-wyeur4?file=vite.config.js)
+✦ [Vite - PReact](https://stackblitz.com/edit/vitejs-vite-oujmks?file=vite.config.js)
+✦ [Vite - lit](https://stackblitz.com/edit/vitejs-vite-ru4gws?file=vite.config.js)
+✦ [Vite - Svelte](https://stackblitz.com/edit/vitejs-vite-fthdtu?file=vite.config.js)
+✦ [Vite - Solid](https://stackblitz.com/edit/vitejs-vite-dcx3eh?file=vite.config.js)
+✦ [Vite - Qwik](https://stackblitz.com/edit/vitejs-vite-i2bjvq?file=vite.config.js)
+✦ ...
 
 ## 📦 安装
 
