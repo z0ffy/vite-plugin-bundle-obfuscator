@@ -58,7 +58,14 @@ JavaScript `obfuscator` plugin for `Vite` environments
 - If a memory overflow occurs, modify the packaging command to
   `"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`, where `max-old-space-size` is set according
   to the configuration.
-- When setting up `node_modules` split chunk, please place the accurate package name at the front. For example: ["vue-router", "vue"], "vue" can match both "vue" and "vue-router" at the same time.
+- When setting up `node_modules` split chunk, please place the accurate package name at the front. For
+  example: ["vue-router", "vue"], "vue" can match both "vue" and "vue-router" at the same time.
+
+## 🌐 Online Example
+
+- [Vite - Vue](https://stackblitz.com/edit/vitejs-vite-ywho91?file=vite.config.js)
+- [Vite - React](https://stackblitz.com/edit/vitejs-vite-wyeur4?file=vite.config.js)
+- ...
 
 ## 📦 Installation
 

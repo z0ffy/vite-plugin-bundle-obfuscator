@@ -59,6 +59,12 @@
   `max-old-space-size`的值根据配置自行设置。
 - 在设置`node_modules`分包时，请把准确的包名前置。例如：["vue-router", "vue"]，`"vue"`可以同时匹配到`vue`以及`vue-router`。
 
+## 🌐 在线示例
+
+- [Vite - Vue](https://stackblitz.com/edit/vitejs-vite-ywho91?file=vite.config.js)
+- [Vite - React](https://stackblitz.com/edit/vitejs-vite-wyeur4?file=vite.config.js)
+- ...
+
 ## 📦 安装
 
 ```bash
