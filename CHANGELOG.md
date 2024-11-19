@@ -1,7 +1,10 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.1...HEAD) - 
 
+### [v1.3.1](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.0...v1.3.1) -  19 November 2024 
+
+- chore: release v1.3.1
 - docs: update README.md
 - chore: update doc
 - chore(deps-dev): bump eslint from 9.14.0 to 9.15.0
