@@ -63,8 +63,14 @@ JavaScript `obfuscator` plugin for `Vite` environments
 
 ## 🌐 Online Example
 
+- [Vite - Vanilla](https://stackblitz.com/edit/vitejs-vite-zsytij?file=vite.config.js)
 - [Vite - Vue](https://stackblitz.com/edit/vitejs-vite-ywho91?file=vite.config.js)
 - [Vite - React](https://stackblitz.com/edit/vitejs-vite-wyeur4?file=vite.config.js)
+- [Vite - PReact](https://stackblitz.com/edit/vitejs-vite-oujmks?file=vite.config.js)
+- [Vite - lit](https://stackblitz.com/edit/vitejs-vite-ru4gws?file=vite.config.js)
+- [Vite - Svelte](https://stackblitz.com/edit/vitejs-vite-fthdtu?file=vite.config.js)
+- [Vite - Solid](https://stackblitz.com/edit/vitejs-vite-dcx3eh?file=vite.config.js)
+- [Vite - Qwik](https://stackblitz.com/edit/vitejs-vite-i2bjvq?file=vite.config.js)
 - ...
 
 ## 📦 Installation
