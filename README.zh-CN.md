@@ -1,4 +1,4 @@
-<div style="text-align:center;">
+<div align="center">
 
 <img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
@@ -14,7 +14,7 @@
 
 [Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
 
-<p style="text-align:center;">
+<p align="center">
   <a href="./README.md">English</a> | <strong>中文</strong>
 </p>
 
