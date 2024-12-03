@@ -1,6 +1,19 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.1...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.2...HEAD) - 
+
+### [v1.3.2](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.1...v1.3.2) -  3 December 2024 
+
+- chore(deps): bump all dependencies to latest versions
+- chore(deps-dev): bump eslint from 9.15.0 to 9.16.0
+- chore(deps-dev): bump vite from 6.0.1 to 6.0.2
+- chore(deps-dev): bump @eslint/js from 9.15.0 to 9.16.0
+- chore(deps-dev): bump globals from 15.12.0 to 15.13.0
+- chore(deps): bump all dependencies to latest versions
+- chore(deps-dev): bump @types/node from 22.9.1 to 22.9.3
+- chore(deps-dev): bump typescript from 5.6.3 to 5.7.2
+- chore(deps): bump all dependencies to latest versions
+- chore: release v1.3.1
 
 ### [v1.3.1](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.0...v1.3.1) -  19 November 2024 
 
