@@ -1,12 +1,14 @@
 import * as vite from 'vite';
 import { Rollup } from 'vite';
-import { BundleList, Config, ObfuscationResult } from '../type';
-import os from 'node:os';
-import { isBoolean, isFileNameExcluded, isObject } from './is';
 import { Worker } from 'node:worker_threads';
 import path from 'node:path';
+import os from 'node:os';
+import { gzipSync } from 'node:zlib';
 import javascriptObfuscator from 'javascript-obfuscator';
-import { CHUNK_PREFIX, VENDOR_MODULES } from './constants';
+
+import type { BundleList, Config, FormatSizeResult, ObfuscationResult, SizeResult } from '../type';
+import { isBoolean, isFileNameExcluded, isObject } from './is';
+import { CHUNK_PREFIX, LOG_COLOR, SizeUnit, VENDOR_MODULES } from './constants';
 
 export class Log {
   private readonly _log: (msg: string) => void;
@@ -132,4 +134,92 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
       worker.unref();
     });
   });
+}
+
+export function formatSize(bytes: number): FormatSizeResult {
+  const units = Object.values(SizeUnit);
+  let i = 0;
+  while (bytes >= 1024 && i < units.length - 1) {
+    bytes /= 1024;
+    i++;
+  }
+  return {
+    value: Number(bytes.toFixed(2)),
+    unit: units[i],
+  };
+}
+
+export class CodeSizeAnalyzer {
+  private _log;
+  private originalSize: SizeResult;
+  private obfuscatedSize: SizeResult;
+  private startTime: number;
+  private endTime: number;
+
+  constructor(log: Log) {
+    this._log = log;
+    this.originalSize = this.createEmptySizeResult();
+    this.obfuscatedSize = this.createEmptySizeResult();
+    this.startTime = 0;
+    this.endTime = 0;
+  }
+
+  private createEmptySizeResult(): SizeResult {
+    return {
+      original: { value: 0, unit: SizeUnit.B },
+      gzip: { value: 0, unit: SizeUnit.B },
+    };
+  }
+
+  start(originalBundleList: BundleList): void {
+    this.startTime = performance.now();
+    this.originalSize = this.calculateBundleSize(originalBundleList);
+  }
+
+  end(obfuscatedBundleList: BundleList): void {
+    this.obfuscatedSize = this.calculateBundleSize(obfuscatedBundleList);
+    this.endTime = performance.now();
+    this.logResult();
+  }
+
+  private calculateBundleSize(bundleList: BundleList): { original: FormatSizeResult; gzip: FormatSizeResult } {
+    const { totalSize, gzipSize } = bundleList.reduce(
+      (acc, [, bundleItem]) => {
+        if (bundleItem.code) {
+          const code = bundleItem.code;
+          acc.totalSize += Buffer.byteLength(code, 'utf-8');
+          acc.gzipSize += gzipSync(code, { level: 9 }).byteLength;
+        }
+        return acc;
+      },
+      { totalSize: 0, gzipSize: 0 },
+    );
+
+    return {
+      original: formatSize(totalSize),
+      gzip: formatSize(gzipSize),
+    };
+  }
+
+  private analyze(): string {
+    const { originalSize, obfuscatedSize } = this;
+
+    const consume = formatTime(this.endTime - this.startTime);
+
+    const percentageIncrease = (
+      ((obfuscatedSize.original.value - originalSize.original.value) / originalSize.original.value)
+      * 100
+    ).toFixed(2);
+
+    const gzipPercentageIncrease = (
+      ((obfuscatedSize.gzip.value - originalSize.gzip.value) / originalSize.gzip.value)
+      * 100
+    ).toFixed(2);
+
+    return `✓ obfuscated in ${consume} | 📦 ${originalSize.original.value}${originalSize.original.unit} (gzip: ${originalSize.gzip.value}${originalSize.gzip.unit}) → 🔒 ${obfuscatedSize.original.value}${obfuscatedSize.original.unit} (gzip: ${obfuscatedSize.gzip.value}${obfuscatedSize.gzip.unit}) | 📈 ${percentageIncrease}% (gzip: ${gzipPercentageIncrease}%)`;
+  }
+
+  private logResult(): void {
+    this._log.forceLog(LOG_COLOR.success + '%s\x1b[0m', this.analyze());
+  }
 }
