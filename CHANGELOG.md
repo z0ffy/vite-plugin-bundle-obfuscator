@@ -1,6 +1,21 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.2...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.0...HEAD) - 
+
+### [v1.4.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.2...v1.4.0) -  11 December 2024 
+
+- chore: release v1.4.0
+- chore(deps): bump all dependencies to latest versions
+- * feat: add code size analyzer
+- docs: update CHANGELOG.md
+
+#### New Features
+
+- feat: add code size analyzer @z0ffy 
+
+#### Chores And Housekeeping
+
+- chore: optimize @z0ffy 
 
 ### [v1.3.2](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.1...v1.3.2) -  3 December 2024 
 
