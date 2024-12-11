@@ -44,7 +44,14 @@ export const VENDOR_MODULES = 'vendor-modules';
 
 export const CHUNK_PREFIX = 'vendor-';
 
+export enum SizeUnit {
+  B = 'B',
+  KB = 'KB',
+  MB = 'MB',
+}
+
 export const LOG_COLOR = Object.freeze({
   info: '\x1b[36m', // Cyan
   warn: '\x1b[33m', // Yellow
+  success: '\x1b[32m', // Green
 });

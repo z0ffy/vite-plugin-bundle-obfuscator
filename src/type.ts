@@ -1,5 +1,6 @@
 import type { ObfuscatorOptions } from 'javascript-obfuscator';
 import type { Plugin, Rollup } from 'vite';
+import { SizeUnit } from './utils/constants';
 
 export type ViteConfigFn = Plugin['config'];
 
@@ -8,6 +9,13 @@ export type BundleList = Array<[string, Rollup.OutputChunk]>;
 export interface WorkerMessage {
   config: Config;
   chunk: BundleList;
+}
+
+export type SizeResult = { original: FormatSizeResult; gzip: FormatSizeResult };
+
+export interface FormatSizeResult {
+  value: number;
+  unit: SizeUnit;
 }
 
 export interface ObfuscationResult {

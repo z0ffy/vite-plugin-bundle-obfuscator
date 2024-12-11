@@ -1,8 +1,8 @@
 import type { IndexHtmlTransformHook, PluginOption, Rollup } from 'vite';
 import { Config, ViteConfigFn } from './type';
 import {
+  CodeSizeAnalyzer,
   createWorkerTask,
-  formatTime,
   getChunkName,
   getManualChunks,
   getThreadPoolSize,
@@ -70,9 +70,10 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, { bundle }) => {
     if (!finalConfig.enable || !bundle) return html;
 
-    _log.forceLog('starting obfuscation process...');
-    const now = performance.now();
+    _log.forceLog(LOG_COLOR.info + '\nstarting obfuscation process...');
+    const analyzer = new CodeSizeAnalyzer(_log);
     const bundleList = getValidBundleList(finalConfig, bundle);
+    analyzer.start(bundleList);
 
     if (isEnableThreadPool(finalConfig)) {
       const poolSize = Math.min(getThreadPoolSize(finalConfig), bundleList.length);
@@ -91,8 +92,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
       });
     }
 
-    const consume = formatTime(performance.now() - now);
-    _log.forceLog(LOG_COLOR.info + '%s\x1b[0m %s', '✓', `obfuscation process completed in ${consume}.`);
+    analyzer.end(bundleList);
 
     return html;
   };
