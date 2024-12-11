@@ -186,7 +186,7 @@ export class CodeSizeAnalyzer {
     const { totalSize, gzipSize } = bundleList.reduce(
       (acc, [, bundleItem]) => {
         if (bundleItem.code) {
-          const code = bundleItem.code;
+          const { code } = bundleItem;
           acc.totalSize += Buffer.byteLength(code, 'utf-8');
           acc.gzipSize += gzipSync(code, { level: 9 }).byteLength;
         }
