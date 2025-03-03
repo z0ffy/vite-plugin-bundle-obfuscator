@@ -1,6 +1,6 @@
 <div align="center">
 
-<img height="160" src="https://www.obfuscator.io/static/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
+<img height="160" src="https://obfuscator.io/images/logo.png" alt="vite-plugin-bundle-obfuscator logo" />
 
 # vite-plugin-bundle-obfuscator
 
