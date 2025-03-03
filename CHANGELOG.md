@@ -1,6 +1,24 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.1...HEAD) - 
+
+- build(deps): update dependencies and configure pnpm
+- chore(deps-dev): bump @stylistic/eslint-plugin from 2.13.0 to 4.2.0
+- chore(deps-dev): bump eslint from 9.18.0 to 9.21.0
+- chore(deps-dev): bump tsup from 8.3.5 to 8.4.0
+- chore(deps-dev): bump @eslint/js from 9.18.0 to 9.21.0
+- chore(deps-dev): bump lint-staged from 15.4.2 to 15.4.3
+- docs: update logo image URL in README files
+
+### [v1.4.1](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.0...v1.4.1) -  25 January 2025 
+
+- ci: update dependencies and adjust commitlint rule
+- chore(deps-dev): bump typescript-eslint from 8.18.0 to 8.20.0
+- chore(deps-dev): bump eslint from 9.16.0 to 9.18.0
+- chore(deps-dev): bump @eslint/js from 9.16.0 to 9.18.0
+- chore(deps-dev): bump globals from 15.13.0 to 15.14.0
+- chore(deps-dev): bump @commitlint/cli from 19.6.0 to 19.6.1
+- docs: update CHANGELOG.md
 
 ### [v1.4.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.3.2...v1.4.0) -  11 December 2024 
 
