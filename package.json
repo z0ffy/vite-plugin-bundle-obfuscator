@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-bundle-obfuscator",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
   "description": "JavaScript obfuscator plugin for Vite environments",
   "types": "dist/index.d.ts",
