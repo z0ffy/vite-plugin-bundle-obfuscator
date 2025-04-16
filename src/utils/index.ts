@@ -47,7 +47,7 @@ export function formatTime(ms: number): string {
 
 export function isEnabledFeature(featureConfig: boolean | { enable: boolean }): boolean {
   if (isBoolean(featureConfig)) return featureConfig;
-  if (isObject(featureConfig)) return featureConfig.enable;
+  if (isObject(featureConfig) && 'enable' in featureConfig) return featureConfig.enable;
   return false;
 }
 
