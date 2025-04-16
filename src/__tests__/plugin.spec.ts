@@ -1,6 +1,44 @@
-import {expect, describe, it, vi} from "vitest";
-import {formatTime, getThreadPoolSize, getValidBundleList, Log} from "../utils";
+import {expect, describe, it, vi, beforeEach, afterEach} from "vitest";
+import type { Rollup } from 'vite';
+
+vi.mock('node:worker_threads');
+
+import {
+  formatTime, 
+  getThreadPoolSize, 
+  getValidBundleList, 
+  Log, 
+  isEnabledFeature, 
+  isEnableThreadPool, 
+  isEnableAutoExcludesNodeModules, 
+  getChunkName, 
+  CodeSizeAnalyzer, 
+  obfuscateBundle,
+  createWorkerTask
+} from "../utils";
 import {BundleList, Config} from "../type";
+import {isArray, isFunction, isFileNameExcluded} from '../utils/is';
+import { Worker } from 'node:worker_threads';
+
+// Mock WORKER_FILE_PATH
+vi.stubGlobal('WORKER_FILE_PATH', './worker.js');
+
+// Mock javascript-obfuscator
+vi.mock('javascript-obfuscator', () => ({
+  default: {
+    obfuscate: () => ({
+      getObfuscatedCode: () => 'obfuscated code'
+    })
+  }
+}));
+
+vi.mock('node:worker_threads', () => ({
+  Worker: vi.fn(() => ({
+    postMessage: vi.fn(),
+    on: vi.fn(),
+    unref: vi.fn()
+  }))
+}));
 
 const defaultConfig: Config = {
   enable: true,
@@ -146,5 +184,207 @@ describe('getValidBundleList', () => {
     // @ts-ignore
     const result = getValidBundleList(finalConfig, bundle);
     expect(result).toEqual(expected);
+  });
+});
+
+describe('isEnabledFeature', () => {
+  it('should return boolean value directly when input is boolean', () => {
+    expect(isEnabledFeature(true)).toBe(true);
+    expect(isEnabledFeature(false)).toBe(false);
+  });
+
+  it('should return enable property value when input is object', () => {
+    expect(isEnabledFeature({ enable: true })).toBe(true);
+    expect(isEnabledFeature({ enable: false })).toBe(false);
+  });
+
+  it('should return false for invalid input', () => {
+    expect(isEnabledFeature({} as any)).toBe(false);
+    expect(isEnabledFeature(null as any)).toBe(false);
+    expect(isEnabledFeature(undefined as any)).toBe(false);
+  });
+});
+
+describe('isEnableThreadPool', () => {
+  it('should correctly determine thread pool status', () => {
+    expect(isEnableThreadPool({ ...defaultConfig, threadPool: true })).toBe(true);
+    expect(isEnableThreadPool({ ...defaultConfig, threadPool: false })).toBe(false);
+    expect(isEnableThreadPool({ ...defaultConfig, threadPool: { enable: true, size: 4 } })).toBe(true);
+    expect(isEnableThreadPool({ ...defaultConfig, threadPool: { enable: false } })).toBe(false);
+  });
+});
+
+describe('isEnableAutoExcludesNodeModules', () => {
+  it('should correctly determine node modules exclusion status', () => {
+    expect(isEnableAutoExcludesNodeModules({ ...defaultConfig, autoExcludeNodeModules: true })).toBe(true);
+    expect(isEnableAutoExcludesNodeModules({ ...defaultConfig, autoExcludeNodeModules: false })).toBe(false);
+    expect(isEnableAutoExcludesNodeModules({ ...defaultConfig, autoExcludeNodeModules: { enable: true, manualChunks: [] } })).toBe(true);
+    expect(isEnableAutoExcludesNodeModules({ ...defaultConfig, autoExcludeNodeModules: { enable: false } })).toBe(false);
+  });
+});
+
+describe('getChunkName', () => {
+  it('should return modified chunk name when id includes chunk name', () => {
+    const manualChunks = ['react', 'vue'];
+    expect(getChunkName('node_modules/react/index.js', manualChunks)).toBe('vendor-react');
+    expect(getChunkName('node_modules/vue/dist/vue.js', manualChunks)).toBe('vendor-vue');
+  });
+
+  it('should return vendor modules when no match found', () => {
+    const manualChunks = ['react', 'vue'];
+    expect(getChunkName('node_modules/lodash/index.js', manualChunks)).toBe('vendor-modules');
+  });
+});
+
+describe('CodeSizeAnalyzer', () => {
+  let analyzer: CodeSizeAnalyzer;
+  const mockLog = new Log(true);
+  let logSpy: any;
+
+  beforeEach(() => {
+    analyzer = new CodeSizeAnalyzer(mockLog);
+    logSpy = vi.spyOn(console, 'log');
+    // Mock performance.now() to return predictable values
+    let currentTime = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      currentTime += 1000;
+      return currentTime;
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should analyze bundle size correctly', () => {
+    const originalBundle: BundleList = [
+      ['test.js', { code: 'console.log("test");' } as any]
+    ];
+
+    const obfuscatedBundle: BundleList = [
+      ['test.js', { code: 'var _0x123456=function(){console.log("test")};' } as any]
+    ];
+
+    analyzer.start(originalBundle);
+    analyzer.end(obfuscatedBundle);
+
+    const lastCallArgs = logSpy.mock.lastCall;
+    expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
+    expect(lastCallArgs[1]).toMatch(/obfuscated in \ds/);
+  });
+
+  it('should handle empty bundles', () => {
+    const emptyBundle: BundleList = [];
+
+    analyzer.start(emptyBundle);
+    analyzer.end(emptyBundle);
+
+    const lastCallArgs = logSpy.mock.lastCall;
+    expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
+    expect(lastCallArgs[1]).toContain('0B');
+  });
+
+  it('should format sizes with appropriate units', () => {
+    const largeBundle: BundleList = [
+      ['test.js', { code: 'a'.repeat(1024 * 1024) } as any]
+    ];
+
+    analyzer.start(largeBundle);
+    analyzer.end(largeBundle);
+
+    const lastCallArgs = logSpy.mock.lastCall;
+    expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
+    expect(lastCallArgs[1]).toContain('MB');
+  });
+});
+
+describe('is utils', () => {
+  describe('isArray', () => {
+    it('should correctly identify arrays', () => {
+      expect(isArray([])).toBe(true);
+      expect(isArray([1, 2, 3])).toBe(true);
+      expect(isArray(new Array())).toBe(true);
+      expect(isArray(null)).toBe(false);
+      expect(isArray(undefined)).toBe(false);
+      expect(isArray({})).toBe(false);
+      expect(isArray('array')).toBe(false);
+    });
+  });
+
+  describe('isFunction', () => {
+    it('should correctly identify functions', () => {
+      expect(isFunction(() => {})).toBe(true);
+      expect(isFunction(function() {})).toBe(true);
+      expect(isFunction(async () => {})).toBe(true);
+      expect(isFunction(null)).toBe(false);
+      expect(isFunction(undefined)).toBe(false);
+      expect(isFunction({})).toBe(false);
+      expect(isFunction('function')).toBe(false);
+    });
+  });
+
+  describe('isFileNameExcluded', () => {
+    it('should handle RegExp excludes correctly', () => {
+      const excludes = [/\.test\.js$/, 'vendor'];
+      expect(isFileNameExcluded('app.test.js', excludes)).toBe(true);
+      expect(isFileNameExcluded('app.js', excludes)).toBe(false);
+    });
+
+    it('should handle string excludes correctly', () => {
+      const excludes = ['vendor', '.min.js'];
+      expect(isFileNameExcluded('vendor/lib.js', excludes)).toBe(true);
+      expect(isFileNameExcluded('app.min.js', excludes)).toBe(true);
+      expect(isFileNameExcluded('app.js', excludes)).toBe(false);
+    });
+
+    it('should handle mixed excludes correctly', () => {
+      const excludes = [/\.spec\.js$/, 'test'];
+      expect(isFileNameExcluded('app.spec.js', excludes)).toBe(true);
+      expect(isFileNameExcluded('test/app.js', excludes)).toBe(true);
+      expect(isFileNameExcluded('app.js', excludes)).toBe(false);
+    });
+  });
+});
+
+describe('obfuscateBundle', () => {
+  it('should obfuscate bundle and log progress', () => {
+    const finalConfig: Config = {
+      ...defaultConfig,
+      log: true
+    };
+    const fileName = 'test.js';
+    const bundleItem = {
+      code: 'console.log("test")'
+    } as Rollup.OutputChunk;
+
+    const logSpy = vi.spyOn(console, 'log');
+    
+    const result = obfuscateBundle(finalConfig, fileName, bundleItem);
+
+    expect(result).toBe('obfuscated code');
+    expect(logSpy).toHaveBeenCalledWith('obfuscating test.js...');
+    expect(logSpy).toHaveBeenCalledWith('obfuscation complete for test.js.');
+  });
+});
+
+describe('createWorkerTask', () => {
+  it('should call worker methods properly', () => {
+    const finalConfig: Config = {
+      ...defaultConfig
+    };
+    const chunk: BundleList = [
+      ['test.js', { code: 'console.log("test")' } as Rollup.OutputChunk]
+    ];
+
+    createWorkerTask(finalConfig, chunk);
+
+    expect(Worker).toHaveBeenCalled();
+    
+    const mockWorkerInstance = vi.mocked(Worker).mock.results[0].value;
+    
+    expect(mockWorkerInstance.postMessage).toHaveBeenCalledWith({ config: finalConfig, chunk });
+    
+    expect(mockWorkerInstance.on).toHaveBeenCalledWith('message', expect.any(Function));
+    expect(mockWorkerInstance.on).toHaveBeenCalledWith('error', expect.any(Function));
   });
 });

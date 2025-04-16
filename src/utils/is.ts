@@ -15,7 +15,8 @@ export function isArray(input: any): input is any[] {
 }
 
 export function isFunction(input: any): input is Function {
-  return Object.prototype.toString.call(input) === '[object Function]';
+  const type = Object.prototype.toString.call(input);
+  return type === '[object Function]' || type === '[object AsyncFunction]';
 }
 
 export function isBoolean(input: any): input is boolean {
