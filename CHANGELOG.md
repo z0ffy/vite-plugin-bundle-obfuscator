@@ -1,7 +1,21 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.1...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.5.0...HEAD) - 
 
+### [v1.5.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.2...v1.5.0) -  17 April 2025 
+
+- chore: update version to 1.5.0 in package.json
+- feature/add stringArray
+- chore(deps): update dependencies to latest versions
+
+#### New Features
+
+- feat: enhance feature checks and improve type handling in utility functions @z0ffy 
+- feat: add support for stringArray option @z0ffy 
+
+### [v1.4.2](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.1...v1.4.2) -  3 March 2025 
+
+- chore: update dependencies and version to 1.4.2; update CHANGELOG.md
 - build(deps): update dependencies and configure pnpm
 - chore(deps-dev): bump @stylistic/eslint-plugin from 2.13.0 to 4.2.0
 - chore(deps-dev): bump eslint from 9.18.0 to 9.21.0
