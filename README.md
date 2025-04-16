@@ -52,9 +52,6 @@ JavaScript `obfuscator` plugin for `Vite` environments
 
 ## ⚠️ Notice
 
-- If the obfuscation option `stringArray` is `true`.
-    - Your results may lose some bundles (in `__vite__mapDeps` array).
-    - I'm looking for an accurate case.
 - If a memory overflow occurs, modify the packaging command to
   `"build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build"`, where `max-old-space-size` is set according
   to the configuration.
@@ -121,8 +118,9 @@ const allObfuscatorConfig = {
     selfDefending: true,
     simplify: true,
     splitStrings: false,
-    stringArray: false,
-    stringArrayCallsTransform: false,
+    ignoreImports: true,
+    stringArray: true,
+    stringArrayCallsTransform: true,
     stringArrayCallsTransformThreshold: 0.5,
     stringArrayEncoding: [],
     stringArrayIndexShift: true,
