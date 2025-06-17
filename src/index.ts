@@ -1,5 +1,5 @@
 import type { IndexHtmlTransformHook, PluginOption, Rollup } from 'vite';
-import { Config, ViteConfigFn } from './type';
+import { BundleList, Config, ViteConfigFn } from './type';
 import {
   CodeSizeAnalyzer,
   createWorkerTask,
@@ -13,6 +13,7 @@ import {
   Log,
   modifyChunkName,
   obfuscateBundle,
+  obfuscateLibBundle,
 } from './utils';
 import { isArray, isFunction, isObject } from './utils/is';
 import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
@@ -20,9 +21,12 @@ import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
   const finalConfig = { ...defaultConfig, ...config };
   const _log = new Log(finalConfig.log);
+  let isLibMode = false;
 
   const modifyConfigHandler: ViteConfigFn = (config) => {
-    if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig)) return;
+    isLibMode = !!config.build?.lib;
+
+    if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig) || isLibMode) return;
 
     config.build = config.build || {};
     config.build.rollupOptions = config.build.rollupOptions || {};
@@ -97,10 +101,28 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     return html;
   };
 
+  const renderChunkHandler: Rollup.RenderChunkHook = (code: string, chunk: Rollup.RenderedChunk) => {
+    if (!finalConfig.enable || !isLibMode) return code;
+
+    const analyzer = new CodeSizeAnalyzer(_log);
+    const bundleList = [[chunk.name, { code }]] as BundleList;
+    analyzer.start(bundleList);
+
+    const { code: obfuscatedCode, map } = obfuscateLibBundle(finalConfig, chunk.name, code);
+
+    analyzer.end(bundleList);
+
+    return {
+      code: obfuscatedCode,
+      map,
+    };
+  };
+
   return {
     name: 'vite-plugin-bundle-obfuscator',
     apply: finalConfig.apply,
     config: modifyConfigHandler,
+    renderChunk: renderChunkHandler,
     transformIndexHtml: getViteMajorVersion() >= 5 ? {
       order: 'post',
       handler: transformIndexHtmlHandler,
