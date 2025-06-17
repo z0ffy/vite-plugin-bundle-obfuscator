@@ -113,6 +113,17 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
   return obfuscatedCode;
 }
 
+export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): { code: string; map: Rollup.SourceMapInput } {
+  const _log = new Log(finalConfig.log);
+  _log.info(`obfuscating ${fileName}...`);
+  const obfuscated = javascriptObfuscator.obfuscate(code, finalConfig.options);
+  _log.info(`obfuscation complete for ${fileName}.`);
+  return {
+    code: obfuscated.getObfuscatedCode(),
+    map: obfuscated.getSourceMap(),
+  };
+}
+
 export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
