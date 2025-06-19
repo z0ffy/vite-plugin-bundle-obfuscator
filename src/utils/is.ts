@@ -23,13 +23,23 @@ export function isBoolean(input: any): input is boolean {
   return Object.prototype.toString.call(input) === '[object Boolean]';
 }
 
-export function isFileNameExcluded(name: string, excludes: (RegExp | string)[]): boolean {
-  for (const exclude of excludes) {
-    if (isRegExp(exclude)) {
-      if (exclude.test(name)) return true;
-    } else if (isString(exclude)) {
-      if (name.includes(exclude)) return true;
-    }
+export function isFileNameExcluded(fileName: string, excludes: (RegExp | string)[] | RegExp | string): boolean {
+  if (!excludes) return false;
+
+  if (Array.isArray(excludes)) {
+    return excludes.some((exclude) => {
+      if (isString(exclude)) {
+        return fileName.includes(exclude);
+      } else if (isRegExp(exclude)) {
+        return exclude.test(fileName);
+      }
+      return false;
+    });
+  } else if (isString(excludes)) {
+    return fileName.includes(excludes);
+  } else if (isRegExp(excludes)) {
+    return excludes.test(fileName);
   }
+
   return false;
 }

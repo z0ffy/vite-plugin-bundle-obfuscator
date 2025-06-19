@@ -9,6 +9,12 @@ export type BundleList = Array<[string, Rollup.OutputChunk]>;
 export interface WorkerMessage {
   config: Config;
   chunk: BundleList;
+  registryState?: string[];
+}
+
+export interface WorkerResponse {
+  results: ObfuscationResult[];
+  registryState: string[];
 }
 
 export type SizeResult = { original: FormatSizeResult; gzip: FormatSizeResult };

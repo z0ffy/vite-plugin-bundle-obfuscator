@@ -105,19 +105,86 @@ export function getChunkName(id: string, manualChunks: string[]): string {
   return VENDOR_MODULES;
 }
 
+export class ObfuscatedFilesRegistry {
+  private static instance: ObfuscatedFilesRegistry;
+  private obfuscatedFiles: Set<string> = new Set();
+
+  private constructor() {
+  }
+
+  public static getInstance(): ObfuscatedFilesRegistry {
+    if (!ObfuscatedFilesRegistry.instance) {
+      ObfuscatedFilesRegistry.instance = new ObfuscatedFilesRegistry();
+    }
+    return ObfuscatedFilesRegistry.instance;
+  }
+
+  public markAsObfuscated(fileName: string): void {
+    if (!fileName) return;
+    this.obfuscatedFiles.add(fileName);
+  }
+
+  public isObfuscated(fileName: string): boolean {
+    if (!fileName) return false;
+    return this.obfuscatedFiles.has(fileName);
+  }
+
+  public getAllObfuscatedFiles(): string[] {
+    return Array.from(this.obfuscatedFiles);
+  }
+
+  public clear(): void {
+    this.obfuscatedFiles.clear();
+  }
+
+  public serialize(): string[] {
+    return Array.from(this.obfuscatedFiles);
+  }
+
+  public updateFromSerialized(serializedFiles: string[]): void {
+    if (!serializedFiles || !Array.isArray(serializedFiles)) return;
+
+    serializedFiles.forEach((file) => {
+      this.obfuscatedFiles.add(file);
+    });
+  }
+}
+
 export function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): string {
   const _log = new Log(finalConfig.log);
+  const registry = ObfuscatedFilesRegistry.getInstance();
+
+  if (registry.isObfuscated(fileName)) {
+    _log.info(`skipping ${fileName} (already in obfuscated registry)`);
+    return bundleItem.code;
+  }
+
   _log.info(`obfuscating ${fileName}...`);
   const obfuscatedCode = javascriptObfuscator.obfuscate(bundleItem.code, finalConfig.options).getObfuscatedCode();
   _log.info(`obfuscation complete for ${fileName}.`);
+
+  registry.markAsObfuscated(fileName);
+  _log.info(`added ${fileName} to obfuscated files registry`);
+
   return obfuscatedCode;
 }
 
 export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): { code: string; map: Rollup.SourceMapInput } {
   const _log = new Log(finalConfig.log);
+  const registry = ObfuscatedFilesRegistry.getInstance();
+
+  if (registry.isObfuscated(fileName)) {
+    _log.info(`skipping ${fileName} (already in obfuscated registry)`);
+    return { code, map: null };
+  }
+
   _log.info(`obfuscating ${fileName}...`);
   const obfuscated = javascriptObfuscator.obfuscate(code, finalConfig.options);
   _log.info(`obfuscation complete for ${fileName}.`);
+
+  registry.markAsObfuscated(fileName);
+  _log.info(`added ${fileName} to obfuscated files registry`);
+
   return {
     code: obfuscated.getObfuscatedCode(),
     map: obfuscated.getSourceMap(),
@@ -127,15 +194,28 @@ export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: 
 export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
-    worker.postMessage({ config: finalConfig, chunk });
+    const registry = ObfuscatedFilesRegistry.getInstance();
+
+    worker.postMessage({
+      config: finalConfig,
+      chunk,
+      registryState: registry.serialize(),
+    });
 
     worker.on('message', (value) => {
-      chunk.forEach(([fileName, bundleItem]) => {
-        const result = value.find((i: ObfuscationResult) => i.fileName === fileName);
-        if (result && result.obfuscatedCode) {
-          bundleItem.code = result.obfuscatedCode;
-        }
-      });
+      if (value.results && Array.isArray(value.results)) {
+        chunk.forEach(([fileName, bundleItem]) => {
+          const result = value.results.find((i: ObfuscationResult) => i.fileName === fileName);
+          if (result && result.obfuscatedCode) {
+            bundleItem.code = result.obfuscatedCode;
+          }
+        });
+      }
+
+      if (value.registryState && Array.isArray(value.registryState)) {
+        registry.updateFromSerialized(value.registryState);
+      }
+
       resolve(value);
       worker.unref();
     });
