@@ -1,6 +1,21 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.5.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.6.0...HEAD) - 
+
+### [v1.6.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.5.0...v1.6.0) -  19 June 2025 
+
+- chore: update version to 1.6.0 in package.json
+- feat: enhance obfuscation process with registry management
+- chore(deps-dev): update dependencies to latest versions
+- chore(deps-dev): bump eslint from 9.24.0 to 9.29.0
+- chore(deps-dev): bump @eslint/js from 9.24.0 to 9.29.0
+- chore(deps-dev): bump @types/node from 22.14.1 to 24.0.2
+- feat: add obfuscation support for library bundles and enhance render …
+- chore: update CHANGELOG for v1.5.0 release
+
+#### New Features
+
+- feat: add obfuscation support for library bundles and enhance render chunk handling @z0ffy 
 
 ### [v1.5.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.4.2...v1.5.0) -  17 April 2025 
 
