@@ -1,6 +1,18 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.6.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.7.0...HEAD) - 
+
+### [v1.7.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.6.0...v1.7.0) -  27 June 2025 
+
+- chore: update version to 1.7.0 in package.json
+- chore: update package.json, upgrade Vite version to 7.0.0
+- chore: add lodash-es and @types/lodash-es dependencies, and use cloneDeep function in utils
+- chore: refactor commitlint configuration and add an ESLint configuration file
+- chore: update CHANGELOG for v1.6.0 release and add new features section
+
+#### Chores And Housekeeping
+
+- chore: update package.json, upgrade Vite version to 7.0.0, add support for Vite 5 and above, refactor transformIndexHtml handling logic @z0ffy 
 
 ### [v1.6.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.5.0...v1.6.0) -  19 June 2025 
 
