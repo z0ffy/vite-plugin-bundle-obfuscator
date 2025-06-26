@@ -118,17 +118,26 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     };
   };
 
+  const getTransformIndexHtml = () => {
+    const viteVersion = getViteMajorVersion();
+    if (viteVersion >= 5) {
+      return {
+        order: 'post',
+        handler: transformIndexHtmlHandler,
+      };
+    }
+
+    return {
+      enforce: 'post',
+      transform: transformIndexHtmlHandler,
+    } as any;
+  };
+
   return {
     name: 'vite-plugin-bundle-obfuscator',
     apply: finalConfig.apply,
     config: modifyConfigHandler,
     renderChunk: renderChunkHandler,
-    transformIndexHtml: getViteMajorVersion() >= 5 ? {
-      order: 'post',
-      handler: transformIndexHtmlHandler,
-    } : {
-      enforce: 'post',
-      transform: transformIndexHtmlHandler,
-    },
+    transformIndexHtml: getTransformIndexHtml(),
   };
 }
