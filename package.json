@@ -1,34 +1,20 @@
 {
   "name": "vite-plugin-bundle-obfuscator",
   "version": "1.6.0",
-  "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
   "description": "JavaScript obfuscator plugin for Vite environments",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsup",
-    "start": "npm run build -- --watch",
-    "test": "vitest",
-    "coverage": "vitest run --coverage",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
-    "prepare": "husky",
-    "lint:lint-staged": "lint-staged",
-    "commitlint": "commitlint --edit",
-    "version": "auto-changelog"
-  },
   "keywords": [
     "vite",
+    "vite-rolldown",
     "obfuscator",
     "vite-plugin-obfuscator",
     "vite-bundle-obfuscator",
+    "vite-javascript-obfuscator",
     "javascript",
     "javascript-obfuscator"
   ],
   "author": "zoffy",
-  "files": [
-    "/dist"
-  ],
   "license": "MIT",
+  "homepage": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator",
   "repository": {
     "type": "git",
     "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator.git"
@@ -36,8 +22,35 @@
   "bugs": {
     "url": "https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues"
   },
-  "engines": {
-    "node": ">=14.0.0"
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "exports": {
+    "require": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "commitlint": "commitlint --edit",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "lint:lint-staged": "lint-staged",
+    "prepare": "husky",
+    "start": "npm run build -- --watch",
+    "test": "vitest",
+    "version": "auto-changelog"
+  },
+  "dependencies": {
+    "javascript-obfuscator": "^4.1.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -57,18 +70,17 @@
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.1",
-    "vite": "^6.3.5",
+    "vite": "^7.0.0",
     "vitest": "^3.2.3"
   },
-  "dependencies": {
-    "javascript-obfuscator": "^4.1.1"
+  "peerDependencies": {
+    "vite": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
-  "exports": {
-    "require": "./dist/index.js",
-    "import": "./dist/index.mjs"
+  "engines": {
+    "node": ">=14.0.0"
   },
   "lint-staged": {
-    "*.{ts}": [
+    "*.ts": [
       "eslint --fix"
     ]
   },
