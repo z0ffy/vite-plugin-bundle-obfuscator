@@ -151,23 +151,33 @@ export class ObfuscatedFilesRegistry {
   }
 }
 
-export function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): string {
+export function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): { code: string; map: Rollup.SourceMapInput } {
   const _log = new Log(finalConfig.log);
   const registry = ObfuscatedFilesRegistry.getInstance();
 
   if (registry.isObfuscated(fileName)) {
     _log.info(`skipping ${fileName} (already in obfuscated registry)`);
-    return bundleItem.code;
+    return { code: bundleItem.code, map: bundleItem.map };
   }
 
   _log.info(`obfuscating ${fileName}...`);
-  const obfuscatedCode = javascriptObfuscator.obfuscate(bundleItem.code, finalConfig.options).getObfuscatedCode();
+  const fileSpecificOptions = finalConfig.options.sourceMap
+    ? {
+        ...finalConfig.options,
+        inputFileName: fileName,
+        sourceMapFileName: `${fileName}.map`,
+      }
+    : finalConfig.options;
+  const obfuscationResult = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
   _log.info(`obfuscation complete for ${fileName}.`);
 
   registry.markAsObfuscated(fileName);
   _log.info(`added ${fileName} to obfuscated files registry`);
 
-  return obfuscatedCode;
+  return {
+    code: obfuscationResult.getObfuscatedCode(),
+    map: JSON.parse(obfuscationResult.getSourceMap() || 'null'),
+  };
 }
 
 export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): { code: string; map: Rollup.SourceMapInput } {
@@ -180,7 +190,14 @@ export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: 
   }
 
   _log.info(`obfuscating ${fileName}...`);
-  const obfuscated = javascriptObfuscator.obfuscate(code, finalConfig.options);
+  const fileSpecificOptions = finalConfig.options.sourceMap
+    ? {
+        ...finalConfig.options,
+        inputFileName: fileName,
+        sourceMapFileName: `${fileName}.map`,
+      }
+    : finalConfig.options;
+  const obfuscated = javascriptObfuscator.obfuscate(code, fileSpecificOptions);
   _log.info(`obfuscation complete for ${fileName}.`);
 
   registry.markAsObfuscated(fileName);
@@ -188,7 +205,7 @@ export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: 
 
   return {
     code: obfuscated.getObfuscatedCode(),
-    map: obfuscated.getSourceMap(),
+    map: JSON.parse(obfuscated.getSourceMap() || 'null'),
   };
 }
 
@@ -209,6 +226,7 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
           const result = value.results.find((i: ObfuscationResult) => i.fileName === fileName);
           if (result && result.obfuscatedCode) {
             bundleItem.code = result.obfuscatedCode;
+            bundleItem.map = result.map || null;
           }
         });
       }

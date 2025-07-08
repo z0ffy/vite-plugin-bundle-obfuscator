@@ -27,7 +27,8 @@ vi.stubGlobal('WORKER_FILE_PATH', './worker.js');
 vi.mock('javascript-obfuscator', () => ({
   default: {
     obfuscate: () => ({
-      getObfuscatedCode: () => 'obfuscated code'
+      getObfuscatedCode: () => 'obfuscated code',
+      getSourceMap: () => JSON.stringify({ version: 3, sources: [], names: [], mappings: '' })
     })
   }
 }));
@@ -361,13 +362,19 @@ describe('obfuscateBundle', () => {
     
     const result = obfuscateBundle(finalConfig, fileName, bundleItem);
 
-    expect(result).toBe('obfuscated code');
+    expect(result.code).toBe('obfuscated code');
     expect(logSpy).toHaveBeenCalledWith('obfuscating test.js...');
     expect(logSpy).toHaveBeenCalledWith('obfuscation complete for test.js.');
   });
 });
 
+import { ObfuscatedFilesRegistry } from '../utils';
+
 describe('createWorkerTask', () => {
+  beforeEach(() => {
+    ObfuscatedFilesRegistry.getInstance().clear();
+  });
+
   it('should call worker methods properly', () => {
     const finalConfig: Config = {
       ...defaultConfig
@@ -382,7 +389,7 @@ describe('createWorkerTask', () => {
     
     const mockWorkerInstance = vi.mocked(Worker).mock.results[0].value;
     
-    expect(mockWorkerInstance.postMessage).toHaveBeenCalledWith({ config: finalConfig, chunk });
+    expect(mockWorkerInstance.postMessage).toHaveBeenCalledWith({ config: finalConfig, chunk, registryState: [] });
     
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('message', expect.any(Function));
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('error', expect.any(Function));

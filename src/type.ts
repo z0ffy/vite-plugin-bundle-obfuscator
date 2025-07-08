@@ -27,6 +27,7 @@ export interface FormatSizeResult {
 export interface ObfuscationResult {
   fileName: string;
   obfuscatedCode: string;
+  map?: Rollup.SourceMapInput;
 }
 
 export interface Config {

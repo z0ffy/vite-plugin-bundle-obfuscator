@@ -1,4 +1,4 @@
-import type { IndexHtmlTransformHook, PluginOption, Rollup } from 'vite';
+import type { PluginOption, Rollup, ResolvedConfig, IndexHtmlTransformHook } from 'vite';
 import { BundleList, Config, ViteConfigFn } from './type';
 import {
   CodeSizeAnalyzer,
@@ -15,18 +15,52 @@ import {
   obfuscateBundle,
   obfuscateLibBundle,
 } from './utils';
-import { isArray, isFunction, isObject } from './utils/is';
+import { isArray, isFunction, isLibMode, isNuxtProject, isObject } from './utils/is';
 import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
   const finalConfig = { ...defaultConfig, ...config };
   const _log = new Log(finalConfig.log);
-  let isLibMode = false;
+  let _isLibMode = false;
+  let _isNuxtProject = false;
+  let _isSsrBuild = false;
 
-  const modifyConfigHandler: ViteConfigFn = (config) => {
-    isLibMode = !!config.build?.lib;
+  const obfuscateAllChunks = async (bundle: Rollup.OutputBundle) => {
+    _log.forceLog(LOG_COLOR.info + '\nstarting obfuscation process...');
+    const analyzer = new CodeSizeAnalyzer(_log);
+    const bundleList = getValidBundleList(finalConfig, bundle);
+    analyzer.start(bundleList);
 
-    if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig) || isLibMode) return;
+    if (isEnableThreadPool(finalConfig)) {
+      const poolSize = Math.min(getThreadPoolSize(finalConfig), bundleList.length);
+      const chunkSize = Math.ceil(bundleList.length / poolSize);
+      const workerPromises = [];
+
+      for (let i = 0; i < poolSize; i++) {
+        const chunk = bundleList.slice(i * chunkSize, (i + 1) * chunkSize);
+        workerPromises.push(createWorkerTask(finalConfig, chunk));
+      }
+
+      await Promise.all(workerPromises);
+    } else {
+      bundleList.forEach(([fileName, bundleItem]) => {
+        const { code, map } = obfuscateBundle(finalConfig, fileName, bundleItem);
+        bundleItem.code = code;
+        bundleItem.map = map as any;
+      });
+    }
+
+    analyzer.end(bundleList);
+  };
+
+  const modifyConfigHandler: ViteConfigFn = (config, env) => {
+    _isSsrBuild = !!env.isSsrBuild;
+    _isLibMode = isLibMode(config);
+    _isNuxtProject = isNuxtProject(config);
+
+    if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig) || _isLibMode || _isNuxtProject) {
+      return;
+    }
 
     config.build = config.build || {};
     config.build.rollupOptions = config.build.rollupOptions || {};
@@ -71,38 +105,30 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     }
   };
 
-  const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, { bundle }) => {
-    if (!finalConfig.enable || !bundle) return html;
-
-    _log.forceLog(LOG_COLOR.info + '\nstarting obfuscation process...');
-    const analyzer = new CodeSizeAnalyzer(_log);
-    const bundleList = getValidBundleList(finalConfig, bundle);
-    analyzer.start(bundleList);
-
-    if (isEnableThreadPool(finalConfig)) {
-      const poolSize = Math.min(getThreadPoolSize(finalConfig), bundleList.length);
-      const chunkSize = Math.ceil(bundleList.length / poolSize);
-      const workerPromises = [];
-
-      for (let i = 0; i < poolSize; i++) {
-        const chunk = bundleList.slice(i * chunkSize, (i + 1) * chunkSize);
-        workerPromises.push(createWorkerTask(finalConfig, chunk));
-      }
-
-      await Promise.all(workerPromises);
-    } else {
-      bundleList.forEach(([fileName, bundleItem]) => {
-        bundleItem.code = obfuscateBundle(finalConfig, fileName, bundleItem);
-      });
+  const configResolvedHandler: (resolvedConfig: ResolvedConfig) => void | Promise<void> = (resolvedConfig) => {
+    const sourcemap = resolvedConfig.build.sourcemap;
+    if (sourcemap) {
+      finalConfig.options = {
+        ...finalConfig.options,
+        sourceMap: true,
+        sourceMapMode: sourcemap === 'inline' ? 'inline' : 'separate',
+      };
     }
+  };
 
-    analyzer.end(bundleList);
-
+  const transformIndexHtmlHandler: IndexHtmlTransformHook = async (html, { bundle }) => {
+    if (!finalConfig.enable || !bundle || _isNuxtProject || _isSsrBuild) return html;
+    await obfuscateAllChunks(bundle);
     return html;
   };
 
-  const renderChunkHandler: Rollup.RenderChunkHook = (code: string, chunk: Rollup.RenderedChunk) => {
-    if (!finalConfig.enable || !isLibMode) return code;
+  const generateBundleHandler: Rollup.Plugin['generateBundle'] = async (_, bundle) => {
+    if (!finalConfig.enable || !bundle || _isLibMode || !_isNuxtProject || _isSsrBuild) return;
+    await obfuscateAllChunks(bundle);
+  };
+
+  const renderChunkHandler: Rollup.RenderChunkHook = (code, chunk) => {
+    if (!finalConfig.enable || !_isLibMode || _isSsrBuild) return null;
 
     const analyzer = new CodeSizeAnalyzer(_log);
     const bundleList = [[chunk.name, { code }]] as BundleList;
@@ -137,7 +163,9 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     name: 'vite-plugin-bundle-obfuscator',
     apply: finalConfig.apply,
     config: modifyConfigHandler,
+    configResolved: configResolvedHandler,
     renderChunk: renderChunkHandler,
     transformIndexHtml: getTransformIndexHtml(),
+    generateBundle: generateBundleHandler,
   };
 }

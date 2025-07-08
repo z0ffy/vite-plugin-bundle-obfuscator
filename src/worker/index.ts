@@ -1,5 +1,5 @@
 import { parentPort } from 'node:worker_threads';
-import javascriptObfuscator from 'javascript-obfuscator';
+import javascriptObfuscator, { ObfuscatorOptions } from 'javascript-obfuscator';
 import { Log, ObfuscatedFilesRegistry } from '../utils';
 import type { ObfuscationResult, WorkerMessage } from '../type';
 
@@ -24,7 +24,14 @@ if (parentPort) {
       }
 
       _log.info(`worker obfuscating ${fileName}...`);
-      const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, message.config.options);
+      const fileSpecificOptions: ObfuscatorOptions = message.config.options.sourceMap
+        ? {
+            ...message.config.options,
+            inputFileName: fileName,
+            sourceMapFileName: `${fileName}.map`,
+          }
+        : message.config.options;
+      const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
       _log.info(`worker obfuscation complete for ${fileName}.`);
 
       registry.markAsObfuscated(fileName);
@@ -33,6 +40,7 @@ if (parentPort) {
       results.push({
         fileName,
         obfuscatedCode: obfuscated.getObfuscatedCode(),
+        map: JSON.parse(obfuscated.getSourceMap() || 'null'),
       });
     }
 
