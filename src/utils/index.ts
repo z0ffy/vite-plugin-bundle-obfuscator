@@ -174,9 +174,11 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
   registry.markAsObfuscated(fileName);
   _log.info(`added ${fileName} to obfuscated files registry`);
 
+  const sourceMap = obfuscationResult.getSourceMap();
+
   return {
     code: obfuscationResult.getObfuscatedCode(),
-    map: JSON.parse(obfuscationResult.getSourceMap() || 'null'),
+    map: sourceMap ? JSON.parse(sourceMap) : null,
   };
 }
 
