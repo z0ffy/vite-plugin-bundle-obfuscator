@@ -1,13 +1,18 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const { toString } = Object.prototype;
+
 export function isRegExp(input: any): input is RegExp {
-  return Object.prototype.toString.call(input) === '[object RegExp]';
+  return toString.call(input) === '[object RegExp]';
 }
 
 export function isString(input: any): input is string {
-  return Object.prototype.toString.call(input) === '[object String]';
+  return toString.call(input) === '[object String]';
 }
 
 export function isObject(input: any): input is object {
-  return Object.prototype.toString.call(input) === '[object Object]';
+  return toString.call(input) === '[object Object]';
 }
 
 export function isArray(input: any): input is any[] {
@@ -15,31 +20,63 @@ export function isArray(input: any): input is any[] {
 }
 
 export function isFunction(input: any): input is Function {
-  const type = Object.prototype.toString.call(input);
+  const type = toString.call(input);
   return type === '[object Function]' || type === '[object AsyncFunction]';
 }
 
 export function isBoolean(input: any): input is boolean {
-  return Object.prototype.toString.call(input) === '[object Boolean]';
+  return toString.call(input) === '[object Boolean]';
 }
 
 export function isFileNameExcluded(fileName: string, excludes: (RegExp | string)[] | RegExp | string): boolean {
   if (!excludes) return false;
 
-  if (Array.isArray(excludes)) {
-    return excludes.some((exclude) => {
+  if (isArray(excludes)) {
+    return (excludes as (RegExp | string)[]).some((exclude) => {
       if (isString(exclude)) {
-        return fileName.includes(exclude);
+        return fileName.includes(exclude as string);
       } else if (isRegExp(exclude)) {
-        return exclude.test(fileName);
+        return (exclude as RegExp).test(fileName);
       }
       return false;
     });
-  } else if (isString(excludes)) {
-    return fileName.includes(excludes);
-  } else if (isRegExp(excludes)) {
-    return excludes.test(fileName);
+  }
+
+  if (isString(excludes)) {
+    return fileName.includes(excludes as string);
+  }
+
+  if (isRegExp(excludes)) {
+    return (excludes as RegExp).test(fileName);
   }
 
   return false;
+}
+
+export function isLibMode(config: { build?: { lib?: any } }): boolean {
+  return !!config.build?.lib;
+}
+
+export function isNuxtProject(config: { root?: string }): boolean {
+  const root = config.root || process.cwd();
+  const packageJsonPath = resolve(root, 'package.json');
+
+  if (existsSync(packageJsonPath)) {
+    try {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+      const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+      if (dependencies.nuxt) return true;
+    } catch {
+      /* empty */
+    }
+  }
+
+  const nuxtPaths = [
+    resolve(root, 'nuxt.config.js'),
+    resolve(root, 'nuxt.config.ts'),
+    resolve(root, '.nuxt'),
+    resolve(root, '.output'),
+  ];
+
+  return nuxtPaths.some(path => existsSync(path));
 }

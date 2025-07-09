@@ -14,6 +14,10 @@ const baseConfig: Options = {
   sourcemap: false,
   clean: true,
   minify: true,
+  esbuildOptions(options) {
+    options.legalComments = 'none';
+    return options;
+  },
 };
 
 export default defineConfig([
