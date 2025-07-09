@@ -5,7 +5,6 @@ import path from 'node:path';
 import os from 'node:os';
 import { gzipSync } from 'node:zlib';
 import javascriptObfuscator from 'javascript-obfuscator';
-import { cloneDeep } from 'lodash-es';
 
 import type { BundleList, Config, FormatSizeResult, ObfuscationResult, SizeResult } from '../type';
 import { isBoolean, isFileNameExcluded, isObject } from './is';
@@ -218,7 +217,7 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
 
     worker.postMessage({
       config: finalConfig,
-      chunk: cloneDeep(chunk),
+      chunk: JSON.parse(JSON.stringify(chunk)),
       registryState: registry.serialize(),
     });
 
