@@ -1,6 +1,26 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.7.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.8.0...HEAD) - 
+
+### [v1.8.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.7.0...v1.8.0) -  10 July 2025 
+
+- feat: bump version to 1.8.0 and add nuxt keyword
+- fix(config): move dts configuration to baseConfig for better maintainability
+- feat: optimize
+- feat: add support for Nuxt.js
+- chore: update CHANGELOG.md
+
+#### Fixes
+
+- fix: handle source map parsing in obfuscateBundle function @z0ffy 
+
+#### Refactoring and Updates
+
+- refactor(deps): replace lodash-es with native JSON methods @z0ffy 
+
+#### General Changes
+
+- build(config): move dts generation to cjs format only @z0ffy 
 
 ### [v1.7.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.6.0...v1.7.0) -  27 June 2025 
 
