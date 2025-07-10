@@ -10,6 +10,10 @@ const baseConfig: Options = {
   sourcemap: false,
   clean: true,
   minify: true,
+  dts: {
+    entry: 'src/index.ts',
+    resolve: true,
+  },
   esbuildOptions(options) {
     options.legalComments = 'none';
     return options;
@@ -20,10 +24,6 @@ export default defineConfig([
   {
     ...baseConfig,
     format: ['cjs'],
-    dts: {
-      entry: 'src/index.ts',
-      resolve: true,
-    },
     define: {
       WORKER_FILE_PATH: JSON.stringify('./worker/index.js'),
     },
