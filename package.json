@@ -1,10 +1,11 @@
 {
   "name": "vite-plugin-bundle-obfuscator",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "JavaScript obfuscator plugin for Vite environments",
   "keywords": [
     "vite",
     "vite-rolldown",
+    "nuxt",
     "obfuscator",
     "vite-plugin-obfuscator",
     "vite-bundle-obfuscator",
