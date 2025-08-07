@@ -7,12 +7,13 @@
 适用于`Vite`环境的`JavaScript`混淆器插件
 
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
-[![][npm-release-shield]][npm-release-link]
-[![][npm-downloads-shield]][npm-release-link]
-[![][github-releasedate-shield]][github-releasedate-link]
-[![][github-license-shield]][github-license-link]
+[![npm version](https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=28CF8D&logo=npm)](https://www.npmjs.com/package/vite-plugin-bundle-obfuscator)
+[![npm downloads](https://img.shields.io/npm/dt/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=28CF8D&logo=npm)](https://www.npmjs.com/package/vite-plugin-bundle-obfuscator)
+[![GitHub Release Date](https://img.shields.io/github/release-date/z0ffy/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=a855f7)](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/releases)
+[![codecov](https://codecov.io/gh/z0ffy/vite-plugin-bundle-obfuscator/graph/badge.svg)](https://codecov.io/gh/z0ffy/vite-plugin-bundle-obfuscator)
+[![GitHub License](https://img.shields.io/github/license/z0ffy/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=white)](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/blob/main/LICENSE)
 
-[Changelog](./CHANGELOG.md) · [Report Bug][github-issues-link] · [Request Feature][github-pr-link]
+[📝 更新日志](./CHANGELOG.md) · [🐛 报告问题][github-issues-link] · [✨ 请求功能][github-pr-link]
 
 <p align="center">
   <a href="./README.md">English</a> | <strong>中文</strong>
@@ -22,24 +23,15 @@
 
 </div>
 
-[npm-release-shield]: https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator?color=369eff&labelColor=black&logo=npm&logoColor=white
-
-[npm-downloads-shield]: https://img.shields.io/npm/dt/vite-plugin-bundle-obfuscator?color=red&labelColor=black&logo=npm&logoColor=white
-
+<!-- Badge Links -->
+[npm-release-shield]: https://img.shields.io/npm/v/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=28CF8D&logo=npm
+[npm-downloads-shield]: https://img.shields.io/npm/dt/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=28CF8D&logo=npm
 [npm-release-link]: https://www.npmjs.com/package/vite-plugin-bundle-obfuscator
-
-[github-releasedate-shield]: https://img.shields.io/github/release-date/z0ffy/vite-plugin-bundle-obfuscator?labelColor=black
-
+[github-releasedate-shield]: https://img.shields.io/github/release-date/z0ffy/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=a855f7
 [github-releasedate-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/releases
-
-[github-issues-shield]: https://img.shields.io/github/issues/z0ffy/vite-plugin-bundle-obfuscator?color=ff80eb&labelColor=black
-
-[github-issues-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues
-
-[github-license-shield]: https://img.shields.io/github/license/z0ffy/vite-plugin-bundle-obfuscator?color=white&labelColor=black
-
+[github-license-shield]: https://img.shields.io/github/license/z0ffy/vite-plugin-bundle-obfuscator?style=flat&colorA=18181B&colorB=white
 [github-license-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/blob/main/LICENSE
-
+[github-issues-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues
 [github-pr-link]: https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pulls
 
 ## ⭐️ 特性
@@ -135,7 +127,7 @@ const allObfuscatorConfig = {
 
 export default {
   plugins: [
-    vitePluginBundleObfuscator(defaultObfuscatorConfig)
+    vitePluginBundleObfuscator(allObfuscatorConfig)
   ]
 };
 
