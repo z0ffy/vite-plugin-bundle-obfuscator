@@ -264,6 +264,8 @@ export class CodeSizeAnalyzer {
   private _log;
   private originalSize: SizeResult;
   private obfuscatedSize: SizeResult;
+  private originalBytes: { total: number; gzip: number };
+  private obfuscatedBytes: { total: number; gzip: number };
   private startTime: number;
   private endTime: number;
 
@@ -271,6 +273,8 @@ export class CodeSizeAnalyzer {
     this._log = log;
     this.originalSize = this.createEmptySizeResult();
     this.obfuscatedSize = this.createEmptySizeResult();
+    this.originalBytes = { total: 0, gzip: 0 };
+    this.obfuscatedBytes = { total: 0, gzip: 0 };
     this.startTime = 0;
     this.endTime = 0;
   }
@@ -284,16 +288,23 @@ export class CodeSizeAnalyzer {
 
   start(originalBundleList: BundleList): void {
     this.startTime = performance.now();
-    this.originalSize = this.calculateBundleSize(originalBundleList);
+    const { size, bytes } = this.calculateBundleSize(originalBundleList);
+    this.originalSize = size;
+    this.originalBytes = bytes;
   }
 
   end(obfuscatedBundleList: BundleList): void {
-    this.obfuscatedSize = this.calculateBundleSize(obfuscatedBundleList);
+    const { size, bytes } = this.calculateBundleSize(obfuscatedBundleList);
+    this.obfuscatedSize = size;
+    this.obfuscatedBytes = bytes;
     this.endTime = performance.now();
     this.logResult();
   }
 
-  private calculateBundleSize(bundleList: BundleList): { original: FormatSizeResult; gzip: FormatSizeResult } {
+  private calculateBundleSize(bundleList: BundleList): {
+    size: { original: FormatSizeResult; gzip: FormatSizeResult };
+    bytes: { total: number; gzip: number };
+  } {
     const { totalSize, gzipSize } = bundleList.reduce(
       (acc, [, bundleItem]) => {
         if (bundleItem.code) {
@@ -307,25 +318,29 @@ export class CodeSizeAnalyzer {
     );
 
     return {
-      original: formatSize(totalSize),
-      gzip: formatSize(gzipSize),
+      size: {
+        original: formatSize(totalSize),
+        gzip: formatSize(gzipSize),
+      },
+      bytes: {
+        total: totalSize,
+        gzip: gzipSize,
+      },
     };
   }
 
   private analyze(): string {
-    const { originalSize, obfuscatedSize } = this;
+    const { originalSize, obfuscatedSize, originalBytes, obfuscatedBytes } = this;
 
     const consume = formatTime(this.endTime - this.startTime);
 
-    const percentageIncrease = (
-      ((obfuscatedSize.original.value - originalSize.original.value) / originalSize.original.value)
-      * 100
-    ).toFixed(2);
+    const percentageIncrease = originalBytes.total > 0
+      ? (((obfuscatedBytes.total - originalBytes.total) / originalBytes.total) * 100).toFixed(2)
+      : '0.00';
 
-    const gzipPercentageIncrease = (
-      ((obfuscatedSize.gzip.value - originalSize.gzip.value) / originalSize.gzip.value)
-      * 100
-    ).toFixed(2);
+    const gzipPercentageIncrease = originalBytes.gzip > 0
+      ? (((obfuscatedBytes.gzip - originalBytes.gzip) / originalBytes.gzip) * 100).toFixed(2)
+      : '0.00';
 
     return `✓ obfuscated in ${consume} | 📦 ${originalSize.original.value}${originalSize.original.unit} (gzip: ${originalSize.gzip.value}${originalSize.gzip.unit}) → 🔒 ${obfuscatedSize.original.value}${obfuscatedSize.original.unit} (gzip: ${obfuscatedSize.gzip.value}${obfuscatedSize.gzip.unit}) | 📈 ${percentageIncrease}% (gzip: ${gzipPercentageIncrease}%)`;
   }

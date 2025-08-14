@@ -297,6 +297,43 @@ describe('CodeSizeAnalyzer', () => {
     expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
     expect(lastCallArgs[1]).toContain('MB');
   });
+
+  it('should calculate percentage correctly when units differ', () => {
+    const originalBundle: BundleList = [
+      ['test.js', { code: 'a'.repeat(500 * 1024) } as any]
+    ];
+
+    const obfuscatedBundle: BundleList = [
+      ['test.js', { code: 'a'.repeat(2 * 1024 * 1024) } as any]
+    ];
+
+    analyzer.start(originalBundle);
+    analyzer.end(obfuscatedBundle);
+
+    const lastCallArgs = logSpy.mock.lastCall;
+    expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
+    const result = lastCallArgs[1];
+    
+    expect(result).toMatch(/\d+(\.\d+)?KB.*→.*\d+(\.\d+)?MB/);
+    expect(result).toMatch(/309\.\d+%/);
+  });
+
+  it('should handle zero division when calculating percentage', () => {
+    const emptyOriginalBundle: BundleList = [];
+
+    const obfuscatedBundle: BundleList = [
+      ['test.js', { code: 'console.log("test");' } as any]
+    ];
+
+    analyzer.start(emptyOriginalBundle);
+    analyzer.end(obfuscatedBundle);
+
+    const lastCallArgs = logSpy.mock.lastCall;
+    expect(lastCallArgs[0]).toBe('\x1b[32m%s\x1b[0m');
+    const result = lastCallArgs[1];
+    
+    expect(result).toContain('0.00%');
+  });
 });
 
 describe('is utils', () => {
