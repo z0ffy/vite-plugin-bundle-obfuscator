@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { gzipSync } from 'node:zlib';
 import javascriptObfuscator from 'javascript-obfuscator';
+import remapping from '@jridgewell/remapping';
 
 import type { BundleList, Config, FormatSizeResult, ObfuscationResult, SizeResult } from '../type';
 import { isBoolean, isFileNameExcluded, isObject } from './is';
@@ -105,6 +106,20 @@ export function getChunkName(id: string, manualChunks: string[]): string {
   return VENDOR_MODULES;
 }
 
+export function composeSourcemaps(map1: Rollup.SourceMapInput | null, map2: Rollup.SourceMapInput | null, log?: (msg: string) => void): Rollup.SourceMapInput | null {
+  if (!map1) return map2;
+  if (!map2) return map1;
+
+  log?.('composing source maps...');
+
+  const composed = remapping(
+    [map2 as remapping.SourceMapInput, map1 as remapping.SourceMapInput],
+    () => null,
+  );
+
+  return composed as Rollup.SourceMapInput;
+}
+
 export class ObfuscatedFilesRegistry {
   private static instance: ObfuscatedFilesRegistry;
   private obfuscatedFiles: Set<string> = new Set();
@@ -167,17 +182,19 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
         sourceMapFileName: `${fileName}.map`,
       }
     : finalConfig.options;
-  const obfuscationResult = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
+  const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
   _log.info(`obfuscation complete for ${fileName}.`);
 
   registry.markAsObfuscated(fileName);
   _log.info(`added ${fileName} to obfuscated files registry`);
 
-  const sourceMap = obfuscationResult.getSourceMap();
-
   return {
-    code: obfuscationResult.getObfuscatedCode(),
-    map: sourceMap ? JSON.parse(sourceMap) : null,
+    code: obfuscated.getObfuscatedCode(),
+    map: composeSourcemaps(
+      JSON.parse(JSON.stringify(bundleItem.map) || 'null'), // strip methods
+      JSON.parse(obfuscated.getSourceMap() || 'null'),
+      _log.info.bind(_log),
+    ),
   };
 }
 

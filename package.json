@@ -51,6 +51,7 @@
     "version": "auto-changelog"
   },
   "dependencies": {
+    "@jridgewell/remapping": "^2.3.5",
     "javascript-obfuscator": "^4.1.1"
   },
   "devDependencies": {
