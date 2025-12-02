@@ -51,6 +51,7 @@
     "version": "auto-changelog"
   },
   "dependencies": {
+    "@jridgewell/remapping": "^2.3.5",
     "javascript-obfuscator": "^4.1.1"
   },
   "devDependencies": {
@@ -58,6 +59,8 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@commitlint/types": "^19.8.1",
     "@eslint/js": "^9.32.0",
+    "@jridgewell/sourcemap-codec": "^1.5.5",
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@stylistic/eslint-plugin": "^5.2.2",
     "@types/node": "^24.2.0",
     "@vitest/coverage-v8": "^3.2.4",

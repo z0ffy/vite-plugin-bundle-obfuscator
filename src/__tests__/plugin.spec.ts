@@ -8,6 +8,7 @@ import {
   getThreadPoolSize, 
   getValidBundleList, 
   Log, 
+  composeSourcemaps,
   isEnabledFeature, 
   isEnableThreadPool, 
   isEnableAutoExcludesNodeModules, 
@@ -19,6 +20,8 @@ import {
 import {BundleList, Config} from "../type";
 import {isArray, isFunction, isFileNameExcluded} from '../utils/is';
 import { Worker } from 'node:worker_threads';
+import { encode } from '@jridgewell/sourcemap-codec';
+import { TraceMap, originalPositionFor, sourceContentFor } from '@jridgewell/trace-mapping';
 
 // Mock WORKER_FILE_PATH
 vi.stubGlobal('WORKER_FILE_PATH', './worker.js');
@@ -234,6 +237,58 @@ describe('getChunkName', () => {
   it('should return vendor modules when no match found', () => {
     const manualChunks = ['react', 'vue'];
     expect(getChunkName('node_modules/lodash/index.js', manualChunks)).toBe('vendor-modules');
+  });
+});
+
+describe('composeSourcemaps', () => {
+  it('should compose maps and preserve the original source content', () => {
+    const originalSource = 'const message = "hi";\nconsole.log(message);\n';
+    const intermediateSource = 'const message="hi";\nconsole.log(message);\n';
+
+    const bundlerMap: Rollup.SourceMapInput = {
+      version: 3,
+      file: 'bundle.js',
+      sources: ['original.ts'],
+      sourcesContent: [originalSource],
+      names: [],
+      mappings: encode([
+        [[0, 0, 0, 0]],
+        [[0, 0, 1, 0]],
+      ]),
+    };
+
+    const obfuscatorMap: Rollup.SourceMapInput = {
+      version: 3,
+      file: 'bundle-obf.js',
+      sources: ['bundle.js'],
+      sourcesContent: [intermediateSource],
+      names: [],
+      mappings: encode([
+        [[0, 0, 0, 0]],
+        [[0, 0, 1, 0]],
+      ]),
+    };
+
+    const logSpy = vi.fn();
+
+    const composed = composeSourcemaps(bundlerMap, obfuscatorMap, logSpy);
+
+    expect(logSpy).toHaveBeenCalledWith('composing source maps...');
+    expect(composed).not.toBeNull();
+
+    const trace = new TraceMap(composed as any);
+
+    const firstLine = originalPositionFor(trace, { line: 1, column: 0 });
+    expect(firstLine.source).toBe('original.ts');
+    expect(firstLine.line).toBe(1);
+    expect(firstLine.column).toBe(0);
+
+    const secondLine = originalPositionFor(trace, { line: 2, column: 0 });
+    expect(secondLine.source).toBe('original.ts');
+    expect(secondLine.line).toBe(2);
+
+    const recoveredSource = sourceContentFor(trace, firstLine.source as string);
+    expect(recoveredSource).toBe(originalSource);
   });
 });
 
