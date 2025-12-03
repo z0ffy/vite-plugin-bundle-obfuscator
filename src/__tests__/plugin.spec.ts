@@ -37,11 +37,13 @@ vi.mock('javascript-obfuscator', () => ({
 }));
 
 vi.mock('node:worker_threads', () => ({
-  Worker: vi.fn(() => ({
-    postMessage: vi.fn(),
-    on: vi.fn(),
-    unref: vi.fn()
-  }))
+  Worker: vi.fn(function() {
+    return {
+      postMessage: vi.fn(),
+      on: vi.fn(),
+      unref: vi.fn()
+    };
+  })
 }));
 
 const defaultConfig: Config = {
