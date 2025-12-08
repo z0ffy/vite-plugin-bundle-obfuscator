@@ -27,4 +27,4 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
-      - run: pnpm run build && pnpm publish
+      - run: pnpm run build && pnpm publish --provenance --access public --no-git-checks
