@@ -1,4 +1,5 @@
 import { parentPort } from 'node:worker_threads';
+import path from 'node:path';
 import javascriptObfuscator, { ObfuscatorOptions } from 'javascript-obfuscator';
 import { composeSourcemaps, Log, ObfuscatedFilesRegistry } from '../utils';
 import type { ObfuscationResult, WorkerMessage } from '../type';
@@ -28,7 +29,7 @@ if (parentPort) {
         ? {
             ...message.config.options,
             inputFileName: fileName,
-            sourceMapFileName: `${fileName}.map`,
+            sourceMapFileName: `${path.basename(fileName)}.map`,
           }
         : message.config.options;
       const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);

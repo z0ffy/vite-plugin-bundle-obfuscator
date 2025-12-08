@@ -108,10 +108,13 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const configResolvedHandler: (resolvedConfig: ResolvedConfig) => void | Promise<void> = (resolvedConfig) => {
     const sourcemap = resolvedConfig.build.sourcemap;
     if (sourcemap) {
+      const output = resolvedConfig.build.rollupOptions?.output;
+      const sourcemapBaseUrl = !isArray(output) ? output?.sourcemapBaseUrl : undefined;
       finalConfig.options = {
         ...finalConfig.options,
         sourceMap: true,
         sourceMapMode: sourcemap === 'inline' ? 'inline' : 'separate',
+        ...(sourcemapBaseUrl && { sourceMapBaseUrl: sourcemapBaseUrl }),
       };
     }
   };

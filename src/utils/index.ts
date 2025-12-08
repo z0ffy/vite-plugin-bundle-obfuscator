@@ -179,7 +179,7 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
     ? {
         ...finalConfig.options,
         inputFileName: fileName,
-        sourceMapFileName: `${fileName}.map`,
+        sourceMapFileName: `${path.basename(fileName)}.map`,
       }
     : finalConfig.options;
   const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
@@ -212,7 +212,7 @@ export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: 
     ? {
         ...finalConfig.options,
         inputFileName: fileName,
-        sourceMapFileName: `${fileName}.map`,
+        sourceMapFileName: `${path.basename(fileName)}.map`,
       }
     : finalConfig.options;
   const obfuscated = javascriptObfuscator.obfuscate(code, fileSpecificOptions);
