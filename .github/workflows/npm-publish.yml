@@ -4,12 +4,13 @@ on:
   release:
     types: [published]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +27,4 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
-      - run: pnpm run build && pnpm publish --provenance --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: pnpm run build && pnpm publish
