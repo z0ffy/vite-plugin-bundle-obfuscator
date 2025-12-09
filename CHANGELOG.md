@@ -1,6 +1,55 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.8.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.9.0...HEAD) - 
+
+#### General Changes
+
+- ci(workflow): switch from pnpm to npm in npm-publish workflow and simplify steps @z0ffy 
+
+### [v1.9.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.8.0...v1.9.0) -  10 December 2025 
+
+- chore: bump package version to 1.9.0
+- Feature/fix sourcemap url
+- test(plugin): add comprehensive test coverage for utils and plugin behavior
+- chore(deps): update dependencies and adjust Node.js engine requirements
+- chore(deps-dev): bump @stylistic/eslint-plugin from 5.2.2 to 5.5.0
+- chore(deps-dev): bump lint-staged from 16.1.4 to 16.2.6
+- chore(deps-dev): bump @types/node from 24.2.0 to 24.9.1
+- Compose sourcemaps
+- refactor: track bundle size and gzip size in raw bytes
+- docs: update README and localization files with badge links and forma…
+- build(workflow): update coverage reporting tool and clean up permissi…
+- ci: enhance CI pipeline with comprehensive testing and build verifica…
+- chore(deps): update development dependencies
+- chore(deps-dev): bump @stylistic/eslint-plugin from 4.4.1 to 5.2.2
+- chore(deps-dev): bump typescript-eslint from 8.34.1 to 8.38.0
+- chore(deps-dev): bump eslint from 9.29.0 to 9.32.0
+- chore(deps-dev): bump @eslint/js from 9.29.0 to 9.32.0
+- chore(deps-dev): bump @types/node from 24.0.3 to 24.2.0
+- chore: update CHANGELOG for v1.8.0 release and reflect recent changes
+
+#### Documentation Changes
+
+- docs: update README and localization files with badge links and formatting improvements @z0ffy 
+- docs: update README logo URL to point to new path @z0ffy 
+
+#### Refactoring and Updates
+
+- refactor: enhance source map handling and file name resolution @z0ffy 
+
+#### General Changes
+
+- Write tests @mat1jaczyyy 
+- ci: enhance CI pipeline with comprehensive testing and build verification @z0ffy 
+- Compose sourcemaps after obfuscation @mat1jaczyyy 
+- ci(workflow): refine npm publish workflow with OIDC diagnostics @z0ffy 
+- ci(workflow): streamline npm publish workflow and adjust permissions @z0ffy 
+- ci(workflow): update pnpm to v10 and adjust configuration in npm-publish workflow @z0ffy 
+- ci(workflow): update Node.js version to 24 and refine dependency installation step in npm-publish workflow @z0ffy 
+- ci: update Node.js versions in CI matrix and engine requirement @z0ffy 
+- build(workflow): update coverage reporting tool and clean up permission comments @z0ffy 
+- ci(workflow): remove `.npmrc` before installing pnpm in npm-publish workflow @z0ffy 
+- ci(workflow): enhance npm publish with provenance and public access flags @z0ffy 
 
 ### [v1.8.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.7.0...v1.8.0) -  10 July 2025 
 
