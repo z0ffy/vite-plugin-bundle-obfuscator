@@ -2,44 +2,25 @@ name: NPM Publish
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 permissions:
   id-token: write
   contents: read
-  packages: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - run: rm -rf .npmrc
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: true
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org
-
       - name: Install dependencies
-        run: pnpm install
-
+        run: npm install
       - name: Build
-        run: pnpm run build
-
-      - name: Verify OIDC authentication (diagnostic)
-        # If OIDC trust is configured on npm this should print the npm username.
-        # Keep permissive so it won't fail the job if whoami doesn't return.
-        run: |
-          npm whoami || pnpm whoami || true
-
+        run: npm run build
       - name: Publish to npm (via OIDC)
-        run: pnpm publish --provenance --access public --no-git-checks
+        run: npm publish --provenance --access public
