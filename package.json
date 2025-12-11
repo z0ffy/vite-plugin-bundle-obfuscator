@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@jridgewell/remapping": "^2.3.5",
-    "javascript-obfuscator": "^4.2.0"
+    "javascript-obfuscator": "^5.0.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
