@@ -1,5 +1,8 @@
 import {expect, describe, it, vi, beforeEach, afterEach} from "vitest";
 import type {Rollup, Plugin} from 'vite';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import {
   formatTime,
@@ -587,12 +590,53 @@ describe('is utils - additional tests', () => {
   });
 
   describe('isNuxtProject', () => {
+    const mkTmp = () => mkdtempSync(join(tmpdir(), 'vite-bundle-obfuscator-'));
+
+    const writePackageJson = (root: string, pkg: any) => {
+      writeFileSync(join(root, 'package.json'), JSON.stringify(pkg), 'utf-8');
+    };
+
     it('should return false for non-nuxt project', () => {
       expect(isNuxtProject({root: process.cwd()})).toBe(false);
     });
 
     it('should use process.cwd() when root is not provided', () => {
       expect(isNuxtProject({})).toBe(false);
+    });
+
+    it('should return true when package.json depends on nuxt', () => {
+      const root = mkTmp();
+      try {
+        writePackageJson(root, { dependencies: { nuxt: '^3.0.0' } });
+        expect(isNuxtProject({root})).toBe(true);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('should return true when nuxt.config exists', () => {
+      const root = mkTmp();
+      try {
+        writeFileSync(join(root, 'nuxt.config.ts'), 'export default {}', 'utf-8');
+        expect(isNuxtProject({root})).toBe(true);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('should detect nuxt when root points inside .nuxt directory', () => {
+      const root = mkTmp();
+      try {
+        writePackageJson(root, { devDependencies: { nuxt: '^3.0.0' } });
+        mkdirSync(join(root, '.nuxt'), { recursive: true });
+        expect(isNuxtProject({root: join(root, '.nuxt')})).toBe(true);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('should return true when nuxt plugin is present', () => {
+      expect(isNuxtProject({ plugins: [{ name: 'nuxt:config' }] } as any)).toBe(true);
     });
   });
 });
@@ -1070,4 +1114,3 @@ describe('viteBundleObfuscator plugin', () => {
     });
   });
 });
-
