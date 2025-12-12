@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 
 const { toString } = Object.prototype;
 
@@ -57,26 +57,54 @@ export function isLibMode(config: { build?: { lib?: any } }): boolean {
   return !!config.build?.lib;
 }
 
-export function isNuxtProject(config: { root?: string }): boolean {
-  const root = config.root || process.cwd();
-  const packageJsonPath = resolve(root, 'package.json');
+function hasNuxtDependency(packageJsonPath: string): boolean {
+  if (!existsSync(packageJsonPath)) return false;
+  try {
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+    return !!dependencies?.nuxt;
+  } catch {
+    return false;
+  }
+}
 
-  if (existsSync(packageJsonPath)) {
-    try {
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-      const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
-      if (dependencies.nuxt) return true;
-    } catch {
-      /* empty */
+function hasNuxtConfigFile(root: string): boolean {
+  return [
+    resolve(root, 'nuxt.config.js'),
+    resolve(root, 'nuxt.config.ts'),
+    resolve(root, 'nuxt.config.mjs'),
+    resolve(root, 'nuxt.config.cjs'),
+  ].some(p => existsSync(p));
+}
+
+function* walkUpDirs(startDir: string): Generator<string> {
+  let current = startDir;
+  while (true) {
+    yield current;
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+}
+
+function hasNuxtPlugins(config: any): boolean {
+  const plugins = config?.plugins;
+  if (!Array.isArray(plugins)) return false;
+  return plugins.some(p => typeof p?.name === 'string' && (p.name === 'nuxt' || p.name.startsWith('nuxt:')));
+}
+
+export function isNuxtProject(config: { root?: string; plugins?: any } = {}): boolean {
+  if (hasNuxtPlugins(config)) return true;
+
+  const startDir = config.root || process.cwd();
+
+  for (const dir of walkUpDirs(startDir)) {
+    if (hasNuxtConfigFile(dir)) return true;
+    const packageJsonPath = resolve(dir, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      return hasNuxtDependency(packageJsonPath);
     }
   }
 
-  const nuxtPaths = [
-    resolve(root, 'nuxt.config.js'),
-    resolve(root, 'nuxt.config.ts'),
-    resolve(root, '.nuxt'),
-    resolve(root, '.output'),
-  ];
-
-  return nuxtPaths.some(path => existsSync(path));
+  return false;
 }
