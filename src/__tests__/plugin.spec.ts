@@ -67,6 +67,8 @@ const defaultConfig: Config = {
   log: false,
   autoExcludeNodeModules: true,
   threadPool: true,
+  worker: true,
+  workerExcludes: [],
   options: {}
 }
 
@@ -1019,6 +1021,54 @@ describe('viteBundleObfuscator plugin', () => {
 
       const result = newManualChunks('src/utils.js', {});
       expect(result).toBe('original-chunk');
+    });
+
+    it('should auto inject worker obfuscator plugin', () => {
+      const plugin = viteBundleObfuscator() as Plugin;
+      const originalWorkerPlugins = vi.fn().mockReturnValue([{name: 'user-worker-plugin'}]);
+      const config = {worker: {plugins: originalWorkerPlugins}} as any;
+      const env = {command: 'build', mode: 'production', isSsrBuild: false};
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(typeof config.worker.plugins).toBe('function');
+      const plugins1 = config.worker.plugins();
+      const plugins2 = config.worker.plugins();
+
+      expect(plugins1.some((p: any) => p?.name === 'user-worker-plugin')).toBe(true);
+      expect(plugins1.some((p: any) => p?.name === 'vite-plugin-bundle-obfuscator:worker')).toBe(true);
+
+      const w1 = plugins1.find((p: any) => p?.name === 'vite-plugin-bundle-obfuscator:worker');
+      const w2 = plugins2.find((p: any) => p?.name === 'vite-plugin-bundle-obfuscator:worker');
+      expect(w1).toBeDefined();
+      expect(w2).toBeDefined();
+      expect(w1).not.toBe(w2);
+    });
+
+    it('should not auto inject worker plugin when disabled', () => {
+      const plugin = viteBundleObfuscator({worker: false}) as Plugin;
+      const config = {} as any;
+      const env = {command: 'build', mode: 'production', isSsrBuild: false};
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(config.worker?.plugins).toBeUndefined();
+    });
+
+    it('should not duplicate worker plugin when already exists', () => {
+      const plugin = viteBundleObfuscator() as Plugin;
+      const originalWorkerPlugins = vi.fn().mockReturnValue([{name: 'vite-plugin-bundle-obfuscator:worker'}]);
+      const config = {worker: {plugins: originalWorkerPlugins}} as any;
+      const env = {command: 'build', mode: 'production', isSsrBuild: false};
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      const plugins = config.worker.plugins();
+      const workerCount = plugins.filter((p: any) => p?.name === 'vite-plugin-bundle-obfuscator:worker').length;
+      expect(workerCount).toBe(1);
     });
   });
 

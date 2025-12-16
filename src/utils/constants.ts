@@ -7,6 +7,8 @@ export const defaultConfig: Readonly<Config> = {
   apply: 'build',
   autoExcludeNodeModules: false,
   threadPool: false,
+  worker: true,
+  workerExcludes: [],
   options: {
     compact: true,
     controlFlowFlattening: true,
