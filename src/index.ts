@@ -1,4 +1,4 @@
-import type { PluginOption, Rollup, ResolvedConfig, IndexHtmlTransformHook } from 'vite';
+import type { Plugin, PluginOption, Rollup, ResolvedConfig, IndexHtmlTransformHook } from 'vite';
 import { BundleList, Config, ViteConfigFn } from './type';
 import {
   CodeSizeAnalyzer,
@@ -8,6 +8,7 @@ import {
   getThreadPoolSize,
   getValidBundleList,
   getViteMajorVersion,
+  isEnabledFeature,
   isEnableAutoExcludesNodeModules,
   isEnableThreadPool,
   Log,
@@ -25,26 +26,31 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   let _isNuxtProject = false;
   let _isSsrBuild = false;
 
-  const obfuscateAllChunks = async (bundle: Rollup.OutputBundle) => {
-    _log.forceLog(LOG_COLOR.info + '\nstarting obfuscation process...');
-    const analyzer = new CodeSizeAnalyzer(_log);
-    const bundleList = getValidBundleList(finalConfig, bundle);
+  const obfuscateAllChunks = async (
+    bundle: Rollup.OutputBundle,
+    opts: { config?: Config; log?: Log } = {},
+  ) => {
+    const configToUse = opts.config ?? finalConfig;
+    const log = opts.log ?? _log;
+    log.forceLog(LOG_COLOR.info + '\nstarting obfuscation process...');
+    const analyzer = new CodeSizeAnalyzer(log);
+    const bundleList = getValidBundleList(configToUse, bundle);
     analyzer.start(bundleList);
 
-    if (isEnableThreadPool(finalConfig)) {
-      const poolSize = Math.min(getThreadPoolSize(finalConfig), bundleList.length);
+    if (isEnableThreadPool(configToUse)) {
+      const poolSize = Math.min(getThreadPoolSize(configToUse), bundleList.length);
       const chunkSize = Math.ceil(bundleList.length / poolSize);
       const workerPromises = [];
 
       for (let i = 0; i < poolSize; i++) {
         const chunk = bundleList.slice(i * chunkSize, (i + 1) * chunkSize);
-        workerPromises.push(createWorkerTask(finalConfig, chunk));
+        workerPromises.push(createWorkerTask(configToUse, chunk));
       }
 
       await Promise.all(workerPromises);
     } else {
       bundleList.forEach(([fileName, bundleItem]) => {
-        const { code, map } = obfuscateBundle(finalConfig, fileName, bundleItem);
+        const { code, map } = obfuscateBundle(configToUse, fileName, bundleItem);
         bundleItem.code = code;
         bundleItem.map = map as any;
       });
@@ -57,6 +63,44 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     _isSsrBuild = !!env.isSsrBuild;
     _isLibMode = isLibMode(config);
     _isNuxtProject = isNuxtProject(config);
+
+    if (finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
+      const original = config.worker?.plugins;
+
+      config.worker = config.worker || {};
+      config.worker.plugins = () => {
+        const originalPluginsOption = original ?? [];
+        const resolvedOriginalPlugins = isFunction(originalPluginsOption)
+          ? originalPluginsOption()
+          : originalPluginsOption;
+        const originalPlugins = (isArray(resolvedOriginalPlugins)
+          ? resolvedOriginalPlugins
+          : [resolvedOriginalPlugins]
+        ).filter(Boolean);
+
+        const hasWorkerPlugin = originalPlugins.some(
+          p => isObject(p) && 'name' in p && (p as any).name === 'vite-plugin-bundle-obfuscator:worker',
+        );
+        if (hasWorkerPlugin) return originalPlugins;
+
+        return [
+          ...originalPlugins,
+          {
+            name: 'vite-plugin-bundle-obfuscator:worker',
+            apply: finalConfig.apply,
+            enforce: 'post',
+            async generateBundle(_outputOptions, bundle) {
+              if (!finalConfig.enable || !bundle || _isSsrBuild) return;
+              const workerConfig: Config = {
+                ...finalConfig,
+                excludes: [...finalConfig.excludes, ...finalConfig.obfuscateWorkerExcludes],
+              };
+              await obfuscateAllChunks(bundle, { config: workerConfig, log: new Log(workerConfig.log) });
+            },
+          } satisfies Plugin,
+        ];
+      };
+    }
 
     if (!finalConfig.enable || !isEnableAutoExcludesNodeModules(finalConfig) || _isLibMode || _isNuxtProject) {
       return;

@@ -155,6 +155,32 @@ export default {
 };
 ```
 
+## 🧵 Web Worker Support
+
+By default, worker bundles generated from `?worker` / `new Worker(new URL(...))` are **not** obfuscated.
+
+Enable worker obfuscation:
+
+```js
+import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator({
+      obfuscateWorker: true,
+    }),
+  ],
+};
+```
+
+Exclude extra files only for workers:
+
+```js
+vitePluginBundleObfuscator({
+  obfuscateWorkerExcludes: [/comlink\\.worker.*\\.js$/],
+});
+```
+
 ## 🚀 Performance Comparison
 
 With **7000+ modules** and **400+ bundles** on a **4C 8G** machine:
@@ -169,6 +195,8 @@ With **7000+ modules** and **400+ bundles** on a **4C 8G** machine:
 | threadPool             | Configuration for the thread pool.                                      | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0                                                          |
 | apply                  | Apply the plugin only for serve or build, or on certain conditions.     | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build                   | v1.1.0                                                          |
 | autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean \| ({ enable: true; manualChunks: string[] } \| { enable: false })          | false                   | v1.0.9 (originally boolean, extended to current type in v1.3.0) |
+| obfuscateWorker        | Enable or disable obfuscation for Web Worker bundles.                   | boolean \| { enable: boolean }                                                     | false                   | v1.10.0                                                         |
+| obfuscateWorkerExcludes | Additional excludes only for workers (final: `excludes + obfuscateWorkerExcludes`). | (RegExp \| string)[]                                                               | []                      | v1.10.0                                                         |
 | log                    | Show or hide log output.                                                | boolean                                                                             | true                    | v1.0.4                                                          |
 | enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true                    | v1.0.1                                                          |
 | excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []                      | v1.0.0                                                          |

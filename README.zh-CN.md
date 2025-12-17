@@ -153,6 +153,32 @@ export default {
 };
 ```
 
+## 🧵 Web Worker 支持
+
+默认**不会**对 `?worker` / `new Worker(new URL(...))` 生成的 worker bundle 进行混淆。
+
+启用 worker 混淆：
+
+```js
+import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator({
+      obfuscateWorker: true,
+    }),
+  ],
+};
+```
+
+仅对 worker 额外排除某些文件：
+
+```js
+vitePluginBundleObfuscator({
+  obfuscateWorkerExcludes: [/comlink\\.worker.*\\.js$/],
+});
+```
+
 ## 🚀 性能比较
 
 拥有 **7000+ modules** 和 **400+ bundles** 在 **4C 8G** 机器上：
@@ -167,6 +193,8 @@ export default {
 | threadPool             | 线程池的配置。                    | boolean \| ({ enable: true; size: number } \| { enable: false })                    | false                   | v1.2.0                               |
 | apply                  | 仅将插件应用于服务或构建，或在特定条件下。      | 'serve' \| 'build' \| ((this: void, config: UserConfig, env: ConfigEnv) => boolean) | build                   | v1.1.0                               |
 | autoExcludeNodeModules | 启用自动排除node_modules。        | boolean \| ({ enable: true; manualChunks: string[] } \| { enable: false })          | false                   | v1.0.9（原本为boolean，在v1.3.0版本中扩展到当前类型） |
+| obfuscateWorker        | 启用或禁用 Web Worker 产物混淆。       | boolean \| { enable: boolean }                                                     | false                   | v1.10.0                              |
+| obfuscateWorkerExcludes | 仅对 worker 额外排除（最终：`excludes + obfuscateWorkerExcludes`）。 | (RegExp \| string)[]                                                                | []                      | v1.10.0                              |
 | log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true                    | v1.0.4                               |
 | enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true                    | v1.0.1                               |
 | excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []                      | v1.0.0                               |
