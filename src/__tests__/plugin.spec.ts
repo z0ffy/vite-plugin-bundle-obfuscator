@@ -67,8 +67,8 @@ const defaultConfig: Config = {
   log: false,
   autoExcludeNodeModules: true,
   threadPool: true,
-  worker: true,
-  workerExcludes: [],
+  obfuscateWorker: true,
+  obfuscateWorkerExcludes: [],
   options: {}
 }
 
@@ -1047,7 +1047,7 @@ describe('viteBundleObfuscator plugin', () => {
     });
 
     it('should not auto inject worker plugin when disabled', () => {
-      const plugin = viteBundleObfuscator({worker: false}) as Plugin;
+      const plugin = viteBundleObfuscator({obfuscateWorker: false}) as Plugin;
       const config = {} as any;
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
 

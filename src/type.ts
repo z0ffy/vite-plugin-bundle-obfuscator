@@ -73,11 +73,11 @@ export interface Config {
    */
   options: ObfuscatorOptions;
   /**
-   * Enable or disable obfuscation for Vite Web Worker bundles.
+   * Enable or disable obfuscation for Vite Web Worker bundles (?worker imports).
    */
-  worker: boolean | { enable: boolean };
+  obfuscateWorker: boolean | { enable: boolean };
   /**
-   * Additional excludes only for worker build (final excludes: excludes + workerExcludes).
+   * Additional excludes only for worker build (final excludes: excludes + obfuscateWorkerExcludes).
    */
-  workerExcludes: (RegExp | string)[];
+  obfuscateWorkerExcludes: (RegExp | string)[];
 }

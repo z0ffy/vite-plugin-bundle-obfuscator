@@ -64,7 +64,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     _isLibMode = isLibMode(config);
     _isNuxtProject = isNuxtProject(config);
 
-    if (finalConfig.enable && isEnabledFeature(finalConfig.worker)) {
+    if (finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
       const original = config.worker?.plugins;
 
       config.worker = config.worker || {};
@@ -86,7 +86,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
               if (!finalConfig.enable || !bundle || _isSsrBuild) return;
               const workerConfig: Config = {
                 ...finalConfig,
-                excludes: [...finalConfig.excludes, ...finalConfig.workerExcludes],
+                excludes: [...finalConfig.excludes, ...finalConfig.obfuscateWorkerExcludes],
               };
               await obfuscateAllChunks(bundle, { config: workerConfig, log: new Log(workerConfig.log) });
             },
