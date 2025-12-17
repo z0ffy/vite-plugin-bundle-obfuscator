@@ -69,7 +69,14 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
       config.worker = config.worker || {};
       config.worker.plugins = () => {
-        const originalPlugins = (isFunction(original) ? original() : []) || [];
+        const originalPluginsOption = original ?? [];
+        const resolvedOriginalPlugins = isFunction(originalPluginsOption)
+          ? originalPluginsOption()
+          : originalPluginsOption;
+        const originalPlugins = (isArray(resolvedOriginalPlugins)
+          ? resolvedOriginalPlugins
+          : [resolvedOriginalPlugins]
+        ).filter(Boolean);
 
         const hasWorkerPlugin = originalPlugins.some(
           p => isObject(p) && 'name' in p && (p as any).name === 'vite-plugin-bundle-obfuscator:worker',

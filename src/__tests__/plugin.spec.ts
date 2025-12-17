@@ -1024,7 +1024,7 @@ describe('viteBundleObfuscator plugin', () => {
     });
 
     it('should auto inject worker obfuscator plugin', () => {
-      const plugin = viteBundleObfuscator() as Plugin;
+      const plugin = viteBundleObfuscator({obfuscateWorker: true}) as Plugin;
       const originalWorkerPlugins = vi.fn().mockReturnValue([{name: 'user-worker-plugin'}]);
       const config = {worker: {plugins: originalWorkerPlugins}} as any;
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
