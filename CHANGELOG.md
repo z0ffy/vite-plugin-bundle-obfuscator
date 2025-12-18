@@ -1,6 +1,25 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.9.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.10.0...HEAD) - 
+
+### [v1.10.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.9.0...v1.10.0) -  17 December 2025 
+
+- chore(release): bump version to 1.10.0
+- feat: support worker
+- refactor(utils): enhance `isNuxtProject` checks with directory traversal and plugin validation
+- docs(changelog): update for v1.9.0 release and recent workflow changes
+
+#### New Features
+
+- feat(plugin): add Web Worker obfuscation support with customizable worker options @z0ffy 
+
+#### Fixes
+
+- fix(plugin): ensure correct handling of `worker.plugins` for robust obfuscation @z0ffy 
+
+#### Refactoring and Updates
+
+- refactor(plugin): rename worker-related options to `obfuscateWorker` and `obfuscateWorkerExcludes` @z0ffy 
 
 #### General Changes
 
