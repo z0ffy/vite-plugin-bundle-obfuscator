@@ -8,7 +8,7 @@
     ],
     "strict": true,
     "strictNullChecks": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

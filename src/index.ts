@@ -3,7 +3,10 @@ import { BundleList, Config, ViteConfigFn } from './type';
 import {
   CodeSizeAnalyzer,
   createWorkerTask,
+  ensureBundlerOptions,
+  getBundlerOptions,
   getChunkName,
+  getCodeSplittingGroupNames,
   getManualChunks,
   getThreadPoolSize,
   getValidBundleList,
@@ -20,7 +23,7 @@ import { isArray, isFunction, isLibMode, isNuxtProject, isObject } from './utils
 import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
-  const finalConfig = { ...defaultConfig, ...config };
+  const finalConfig: Config = { ...defaultConfig, ...config };
   const _log = new Log(finalConfig.log);
   let _isLibMode = false;
   let _isNuxtProject = false;
@@ -107,13 +110,17 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     }
 
     config.build = config.build || {};
-    config.build.rollupOptions = config.build.rollupOptions || {};
-    const { output } = config.build.rollupOptions;
+    const bundlerOptions = ensureBundlerOptions(config.build);
+    const { output } = bundlerOptions as { output?: Rollup.OutputOptions | Rollup.OutputOptions[] };
 
     const manualChunks = [...getManualChunks(finalConfig)];
 
-    const addChunks2Excludes = () => {
-      finalConfig.excludes.push(VENDOR_MODULES, ...manualChunks.map(modifyChunkName));
+    const addAutoExcludePatterns = (codeSplittingGroupNames: string[] = []) => {
+      finalConfig.excludes.push(
+        VENDOR_MODULES,
+        ...manualChunks.map(modifyChunkName),
+        ...codeSplittingGroupNames,
+      );
     };
 
     const defaultManualChunks = (id: string) => {
@@ -122,27 +129,40 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     };
 
     if (!output) {
-      addChunks2Excludes();
-      config.build.rollupOptions.output = { manualChunks: defaultManualChunks };
+      addAutoExcludePatterns();
+      bundlerOptions.output = { manualChunks: defaultManualChunks };
       return;
     }
 
+    const optionsName = getViteMajorVersion() >= 8 && config.build.rolldownOptions ? 'rolldownOptions' : 'rollupOptions';
+    const isVite8Plus = getViteMajorVersion() >= 8;
+
     if (isArray(output)) {
-      _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output is an array, ignoring autoExcludeNodeModules configuration.');
+      _log.forceLog(LOG_COLOR.warn, `${optionsName}.output is an array, ignoring autoExcludeNodeModules configuration.`);
       return;
     }
 
     if (isObject(output)) {
-      if (!output.manualChunks) {
-        addChunks2Excludes();
-        output.manualChunks = defaultManualChunks;
-      } else if (isObject(output.manualChunks)) {
-        _log.forceLog(LOG_COLOR.warn, 'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.');
-      } else if (isFunction(output.manualChunks)) {
-        const originalManualChunks = output.manualChunks as (id: string, meta: Rollup.ManualChunkMeta) => any;
+      const codeSplittingGroupNames = isVite8Plus
+        ? getCodeSplittingGroupNames((output as { codeSplitting?: unknown }).codeSplitting)
+        : [];
+      const splittingHandlesVendors = isVite8Plus && codeSplittingGroupNames.length > 0 && !output.manualChunks;
 
-        addChunks2Excludes();
-        output.manualChunks = (id: string, meta: Rollup.ManualChunkMeta) => {
+      if (!output.manualChunks) {
+        if (splittingHandlesVendors) {
+          addAutoExcludePatterns(codeSplittingGroupNames);
+        } else {
+          addAutoExcludePatterns();
+          output.manualChunks = defaultManualChunks;
+        }
+      } else if (isObject(output.manualChunks)) {
+        _log.forceLog(LOG_COLOR.warn, `${optionsName}.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.`);
+      } else if (isFunction(output.manualChunks)) {
+        type ChunkMeta = { getModuleInfo: (moduleId: string) => Rollup.ModuleInfo | null };
+        const originalManualChunks = output.manualChunks as (id: string, meta: ChunkMeta) => any;
+
+        addAutoExcludePatterns(codeSplittingGroupNames);
+        output.manualChunks = (id: string, meta: ChunkMeta) => {
           return defaultManualChunks(id) || originalManualChunks(id, meta);
         };
       }
@@ -152,7 +172,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const configResolvedHandler: (resolvedConfig: ResolvedConfig) => void | Promise<void> = (resolvedConfig) => {
     const sourcemap = resolvedConfig.build.sourcemap;
     if (sourcemap) {
-      const output = resolvedConfig.build.rollupOptions?.output;
+      const output = getBundlerOptions(resolvedConfig.build)?.output;
       const sourcemapBaseUrl = !isArray(output) ? output?.sourcemapBaseUrl : undefined;
       finalConfig.options = {
         ...finalConfig.options,
@@ -174,7 +194,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     await obfuscateAllChunks(bundle);
   };
 
-  const renderChunkHandler: Rollup.RenderChunkHook = (code, chunk) => {
+  const renderChunkHandler: Rollup.Plugin['renderChunk'] = (code: string, chunk: Rollup.RenderedChunk) => {
     if (!finalConfig.enable || !_isLibMode || _isSsrBuild) return null;
 
     const analyzer = new CodeSizeAnalyzer(_log);
