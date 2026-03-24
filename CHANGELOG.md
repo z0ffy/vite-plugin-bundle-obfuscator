@@ -1,6 +1,12 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.10.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.11.0...HEAD) - 
+
+### [v1.11.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.10.0...v1.11.0) -  25 March 2026 
+
+- chore(release): bump version to 1.11.0
+- feat: add vite 8 (rolldown) compatibility
+- docs(changelog): update changelog for v1.10.0 release
 
 ### [v1.10.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.9.0...v1.10.0) -  17 December 2025 
 
