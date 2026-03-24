@@ -5,10 +5,10 @@ import path from 'node:path';
 import os from 'node:os';
 import { gzipSync } from 'node:zlib';
 import javascriptObfuscator from 'javascript-obfuscator';
-import remapping from '@jridgewell/remapping';
+import remapping, { type SourceMapInput } from '@jridgewell/remapping';
 
 import type { BundleList, Config, FormatSizeResult, ObfuscationResult, SizeResult } from '../type';
-import { isBoolean, isFileNameExcluded, isObject } from './is';
+import { isArray, isBoolean, isFileNameExcluded, isObject, isRegExp, isString } from './is';
 import { CHUNK_PREFIX, LOG_COLOR, SizeUnit, VENDOR_MODULES } from './constants';
 
 export class Log {
@@ -32,6 +32,51 @@ export class Log {
 
 export function getViteMajorVersion(): number {
   return vite?.version ? Number(vite.version.split('.')[0]) : 2;
+}
+
+export function getBundlerOptions(build: Record<string, any>): any {
+  if (getViteMajorVersion() >= 8) {
+    return build.rolldownOptions ?? build.rollupOptions;
+  }
+  return build.rollupOptions;
+}
+
+export function ensureBundlerOptions(build: Record<string, any>): any {
+  if (getViteMajorVersion() >= 8) {
+    if (build.rolldownOptions) return build.rolldownOptions;
+    if (build.rollupOptions) return build.rollupOptions;
+    build.rolldownOptions = {};
+    return build.rolldownOptions;
+  }
+
+  build.rollupOptions = build.rollupOptions || {};
+  return build.rollupOptions;
+}
+
+/**
+ * Collect string `name` values from Rolldown `output.codeSplitting.groups` (Vite 8+)
+ * when their static `test` shape clearly targets `node_modules`.
+ */
+export function getCodeSplittingGroupNames(codeSplitting: unknown): string[] {
+  if (!isObject(codeSplitting) || !('groups' in codeSplitting)) return [];
+  const groups = (codeSplitting as { groups?: unknown }).groups;
+  if (!isArray(groups) || groups.length === 0) return [];
+
+  const names: string[] = [];
+  for (const g of groups) {
+    if (!isObject(g) || !('name' in g) || !('test' in g)) continue;
+    const n = (g as { name: unknown }).name;
+    const test = (g as { test: unknown }).test;
+    if (isString(n) && n.length > 0 && matchesNodeModules(test)) names.push(n);
+  }
+  return names;
+}
+
+function matchesNodeModules(input: unknown): boolean {
+  if (isString(input)) return input.includes('node_modules');
+  if (isRegExp(input)) return input.source.includes('node_modules');
+  if (isArray(input)) return input.some(item => matchesNodeModules(item));
+  return false;
 }
 
 export function formatTime(ms: number): string {
@@ -113,7 +158,7 @@ export function composeSourcemaps(map1: Rollup.SourceMapInput | null, map2: Roll
   log?.('composing source maps...');
 
   const composed = remapping(
-    [map2 as remapping.SourceMapInput, map1 as remapping.SourceMapInput],
+    [map2 as SourceMapInput, map1 as SourceMapInput],
     () => null,
   );
 

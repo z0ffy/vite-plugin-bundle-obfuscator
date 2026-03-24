@@ -18,10 +18,12 @@ import {
   obfuscateBundle,
   createWorkerTask,
   getViteMajorVersion,
+  getCodeSplittingGroupNames,
   getManualChunks,
   obfuscateLibBundle,
   formatSize,
-  modifyChunkName
+  modifyChunkName,
+  ObfuscatedFilesRegistry
 } from "../utils";
 import {BundleList, Config} from "../type";
 import {
@@ -483,7 +485,7 @@ describe('obfuscateBundle', () => {
   });
 });
 
-import {ObfuscatedFilesRegistry} from '../utils';
+const bundlerKey = getViteMajorVersion() >= 8 ? 'rolldownOptions' : 'rollupOptions';
 
 describe('createWorkerTask', () => {
   beforeEach(() => {
@@ -688,6 +690,44 @@ describe('utils/index - additional tests', () => {
       expect(modifyChunkName('react')).toBe('vendor-react');
       expect(modifyChunkName('vue')).toBe('vendor-vue');
       expect(modifyChunkName('')).toBe('vendor-');
+    });
+  });
+
+  describe('getCodeSplittingGroupNames', () => {
+    it('should return empty array for invalid input', () => {
+      expect(getCodeSplittingGroupNames(undefined)).toEqual([]);
+      expect(getCodeSplittingGroupNames(null)).toEqual([]);
+      expect(getCodeSplittingGroupNames('x')).toEqual([]);
+      expect(getCodeSplittingGroupNames({})).toEqual([]);
+      expect(getCodeSplittingGroupNames({ groups: [] })).toEqual([]);
+    });
+
+    it('should collect string name fields from groups', () => {
+      expect(
+        getCodeSplittingGroupNames({
+          groups: [{ test: /node_modules/, name: 'libs' }, { name: 'react' }],
+        }),
+      ).toEqual(['libs']);
+    });
+
+    it('should skip groups without string name', () => {
+      expect(
+        getCodeSplittingGroupNames({
+          groups: [{ test: /a/, name: () => 'dyn' }, { name: '' }, { foo: 1 }],
+        }),
+      ).toEqual([]);
+    });
+
+    it('should skip groups that do not statically target node_modules', () => {
+      expect(
+        getCodeSplittingGroupNames({
+          groups: [
+            { test: /src\/pages/, name: 'pages' },
+            { test: 'src/components', name: 'components' },
+            { test: ['node_modules/react', /src\/views/], name: 'react' },
+          ],
+        }),
+      ).toEqual(['react']);
     });
   });
 
@@ -954,17 +994,118 @@ describe('viteBundleObfuscator plugin', () => {
 
     it('should set up manualChunks when output is not defined', () => {
       const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
-      const config = {build: {rollupOptions: {}}} as any;
+      const config = {build: {[bundlerKey]: {}}} as any;
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
 
       // @ts-ignore
       plugin.config(config, env);
 
-      expect(config.build.rollupOptions.output).toBeDefined();
-      expect(config.build.rollupOptions.output.manualChunks).toBeDefined();
+      expect(config.build[bundlerKey].output).toBeDefined();
+      expect(config.build[bundlerKey].output.manualChunks).toBeDefined();
     });
 
     it('should set up manualChunks when output is object without manualChunks', () => {
+      const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
+      const config = {build: {[bundlerKey]: {output: {}}}} as any;
+      const env = {command: 'build', mode: 'production', isSsrBuild: false};
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(config.build[bundlerKey].output.manualChunks).toBeDefined();
+    });
+
+    it('should not inject manualChunks when Vite 8+ codeSplitting.groups has string names', () => {
+      if (getViteMajorVersion() < 8) return;
+
+      const excludes: string[] = [];
+      const plugin = viteBundleObfuscator({
+        autoExcludeNodeModules: true,
+        excludes,
+      }) as Plugin;
+      const config = {
+        build: {
+          [bundlerKey]: {
+            output: {
+              codeSplitting: {
+                groups: [{ test: /node_modules/, name: 'libs' }],
+              },
+            },
+          },
+        },
+      } as any;
+      const env = { command: 'build', mode: 'production', isSsrBuild: false };
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(config.build[bundlerKey].output.manualChunks).toBeUndefined();
+      expect(excludes).toContain('vendor-modules');
+      expect(excludes).toContain('libs');
+    });
+
+    it('should wrap manualChunks and add codeSplitting group names to excludes on Vite 8+', () => {
+      if (getViteMajorVersion() < 8) return;
+
+      const excludes: string[] = [];
+      const originalManualChunks = vi.fn().mockReturnValue('user-chunk');
+      const plugin = viteBundleObfuscator({
+        autoExcludeNodeModules: true,
+        excludes,
+      }) as Plugin;
+      const config = {
+        build: {
+          [bundlerKey]: {
+            output: {
+              codeSplitting: {
+                groups: [{ test: /node_modules\/react/, name: 'react' }],
+              },
+              manualChunks: originalManualChunks,
+            },
+          },
+        },
+      } as any;
+      const env = { command: 'build', mode: 'production', isSsrBuild: false };
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(config.build[bundlerKey].output.manualChunks).toBeDefined();
+      expect(excludes).toContain('react');
+    });
+
+    it('should still inject manualChunks when Vite 8+ codeSplitting groups do not target node_modules', () => {
+      if (getViteMajorVersion() < 8) return;
+
+      const excludes: string[] = [];
+      const plugin = viteBundleObfuscator({
+        autoExcludeNodeModules: true,
+        excludes,
+      }) as Plugin;
+      const config = {
+        build: {
+          [bundlerKey]: {
+            output: {
+              codeSplitting: {
+                groups: [{ test: /src\/pages/, name: 'pages' }],
+              },
+            },
+          },
+        },
+      } as any;
+      const env = { command: 'build', mode: 'production', isSsrBuild: false };
+
+      // @ts-ignore
+      plugin.config(config, env);
+
+      expect(config.build[bundlerKey].output.manualChunks).toBeDefined();
+      expect(excludes).toContain('vendor-modules');
+      expect(excludes).not.toContain('pages');
+    });
+
+    it('should reuse build.rollupOptions alias on Vite 8+', () => {
+      if (getViteMajorVersion() < 8) return;
+
       const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
       const config = {build: {rollupOptions: {output: {}}}} as any;
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
@@ -973,11 +1114,12 @@ describe('viteBundleObfuscator plugin', () => {
       plugin.config(config, env);
 
       expect(config.build.rollupOptions.output.manualChunks).toBeDefined();
+      expect(config.build.rolldownOptions).toBeUndefined();
     });
 
     it('should warn when output is an array', () => {
       const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
-      const config = {build: {rollupOptions: {output: []}}};
+      const config = {build: {[bundlerKey]: {output: []}}};
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
 
       const logSpy = vi.spyOn(console, 'log');
@@ -987,13 +1129,13 @@ describe('viteBundleObfuscator plugin', () => {
 
       expect(logSpy).toHaveBeenCalledWith(
         '\x1b[33m',
-        'rollupOptions.output is an array, ignoring autoExcludeNodeModules configuration.'
+        `${bundlerKey}.output is an array, ignoring autoExcludeNodeModules configuration.`
       );
     });
 
     it('should warn when manualChunks is an object', () => {
       const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
-      const config = {build: {rollupOptions: {output: {manualChunks: {}}}}};
+      const config = {build: {[bundlerKey]: {output: {manualChunks: {}}}}};
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
 
       const logSpy = vi.spyOn(console, 'log');
@@ -1003,20 +1145,20 @@ describe('viteBundleObfuscator plugin', () => {
 
       expect(logSpy).toHaveBeenCalledWith(
         '\x1b[33m',
-        'rollupOptions.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.'
+        `${bundlerKey}.output.manualChunks is an object, ignoring autoExcludeNodeModules configuration.`
       );
     });
 
     it('should wrap existing manualChunks function', () => {
       const originalManualChunks = vi.fn().mockReturnValue('original-chunk');
       const plugin = viteBundleObfuscator({autoExcludeNodeModules: true}) as Plugin;
-      const config = {build: {rollupOptions: {output: {manualChunks: originalManualChunks}}}} as any;
+      const config = {build: {[bundlerKey]: {output: {manualChunks: originalManualChunks}}}} as any;
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
 
       // @ts-ignore
       plugin.config(config, env);
 
-      const newManualChunks = config.build.rollupOptions.output.manualChunks;
+      const newManualChunks = config.build[bundlerKey].output.manualChunks;
       expect(newManualChunks).toBeDefined();
 
       const result = newManualChunks('src/utils.js', {});
