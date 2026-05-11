@@ -19,7 +19,7 @@ import {
   obfuscateBundle,
   obfuscateLibBundle,
 } from './utils';
-import { isArray, isFunction, isLibMode, isNuxtProject, isObject } from './utils/is';
+import { isArray, isFunction, isLaravelProject, isLibMode, isNuxtProject, isObject } from './utils/is';
 import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
 
 export default function viteBundleObfuscator(config?: Partial<Config>): PluginOption {
@@ -27,6 +27,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const _log = new Log(finalConfig.log);
   let _isLibMode = false;
   let _isNuxtProject = false;
+  let _isLaravelProject = false;
   let _isSsrBuild = false;
 
   const obfuscateAllChunks = async (
@@ -66,6 +67,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     _isSsrBuild = !!env.isSsrBuild;
     _isLibMode = isLibMode(config);
     _isNuxtProject = isNuxtProject(config);
+    _isLaravelProject = isLaravelProject(config);
 
     if (finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
       const original = config.worker?.plugins;
@@ -190,7 +192,8 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   };
 
   const generateBundleHandler: Rollup.Plugin['generateBundle'] = async (_, bundle) => {
-    if (!finalConfig.enable || !bundle || _isLibMode || !_isNuxtProject || _isSsrBuild) return;
+    if (!finalConfig.enable || !bundle || _isLibMode || _isSsrBuild) return;
+    if (!_isNuxtProject && !_isLaravelProject) return;
     await obfuscateAllChunks(bundle);
   };
 
