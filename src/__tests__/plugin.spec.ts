@@ -35,7 +35,8 @@ import {
   isRegExp,
   isString,
   isObject,
-  isBoolean
+  isBoolean,
+  isLaravelProject
 } from '../utils/is';
 import {Worker} from 'node:worker_threads';
 import {encode} from '@jridgewell/sourcemap-codec';
@@ -641,6 +642,36 @@ describe('is utils - additional tests', () => {
 
     it('should return true when nuxt plugin is present', () => {
       expect(isNuxtProject({ plugins: [{ name: 'nuxt:config' }] } as any)).toBe(true);
+    });
+  });
+
+  describe('isLaravelProject', () => {
+    const mkTmp = () => mkdtempSync(join(tmpdir(), 'vite-bundle-obfuscator-'));
+
+    const writePackageJson = (root: string, pkg: any) => {
+      writeFileSync(join(root, 'package.json'), JSON.stringify(pkg), 'utf-8');
+    };
+
+    it('should return false for non-laravel project', () => {
+      expect(isLaravelProject({root: process.cwd()})).toBe(false);
+    });
+
+    it('should use process.cwd() when root is not provided', () => {
+      expect(isLaravelProject({})).toBe(false);
+    });
+
+    it('should return true when package.json depends on laravel', () => {
+      const root = mkTmp();
+      try {
+        writePackageJson(root, { dependencies: { 'laravel-vite-plugin': '^3.0.0' } });
+        expect(isLaravelProject({root})).toBe(true);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('should return true when laravel plugin is present', () => {
+      expect(isLaravelProject({ plugins: [{ name: 'laravel' }] } as any)).toBe(true);
     });
   });
 });

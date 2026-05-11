@@ -108,3 +108,35 @@ export function isNuxtProject(config: { root?: string; plugins?: any } = {}): bo
 
   return false;
 }
+
+function hasLaravelDependency(packageJsonPath: string): boolean {
+  if (!existsSync(packageJsonPath)) return false;
+  try {
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+    return !!dependencies?.['laravel-vite-plugin'];
+  } catch {
+    return false;
+  }
+}
+
+function hasLaravelPlugins(config: any): boolean {
+  const plugins = config?.plugins;
+  if (!Array.isArray(plugins)) return false;
+  return plugins.some(p => typeof p?.name === 'string' && (p.name === 'laravel' || p.name.startsWith('laravel:')));
+}
+
+export function isLaravelProject(config: { root?: string; plugins?: any } = {}): boolean {
+  if (hasLaravelPlugins(config)) return true;
+
+  const startDir = config.root || process.cwd();
+
+  for (const dir of walkUpDirs(startDir)) {
+    const packageJsonPath = resolve(dir, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      return hasLaravelDependency(packageJsonPath);
+    }
+  }
+
+  return false;
+}
