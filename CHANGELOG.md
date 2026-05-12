@@ -1,6 +1,13 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.11.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.12.0...HEAD) - 
+
+- chore(release): bump version to 1.12.0
+
+### [v1.12.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.11.0...v1.12.0) -  11 May 2026 
+
+- feat: add support for Laravel projects
+- docs(changelog): update changelog for v1.11.0 release
 
 ### [v1.11.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.10.0...v1.11.0) -  25 March 2026 
 
