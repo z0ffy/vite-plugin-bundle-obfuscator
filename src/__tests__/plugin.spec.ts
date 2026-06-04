@@ -41,15 +41,20 @@ import {
 import {Worker} from 'node:worker_threads';
 import {encode} from '@jridgewell/sourcemap-codec';
 import {TraceMap, originalPositionFor, sourceContentFor} from '@jridgewell/trace-mapping';
+import javascriptObfuscator from 'javascript-obfuscator';
 
 vi.stubGlobal('WORKER_FILE_PATH', './worker.js');
 
 vi.mock('javascript-obfuscator', () => ({
   default: {
-    obfuscate: () => ({
+    obfuscate: vi.fn(() => ({
       getObfuscatedCode: () => 'obfuscated code',
       getSourceMap: () => JSON.stringify({version: 3, sources: [], names: [], mappings: ''})
-    })
+    })),
+    obfuscatePro: vi.fn(async () => ({
+      getObfuscatedCode: () => 'obfuscated code',
+      getSourceMap: () => JSON.stringify({version: 3, sources: [], names: [], mappings: ''})
+    }))
   }
 }));
 
@@ -70,6 +75,7 @@ const defaultConfig: Config = {
   log: false,
   autoExcludeNodeModules: true,
   threadPool: true,
+  pro: false,
   obfuscateWorker: true,
   obfuscateWorkerExcludes: [],
   options: {}
@@ -466,7 +472,12 @@ describe('is utils', () => {
 });
 
 describe('obfuscateBundle', () => {
-  it('should obfuscate bundle and log progress', () => {
+  beforeEach(() => {
+    ObfuscatedFilesRegistry.getInstance().clear();
+    vi.clearAllMocks();
+  });
+
+  it('should obfuscate bundle and log progress', async () => {
     const finalConfig: Config = {
       ...defaultConfig,
       log: true
@@ -478,11 +489,64 @@ describe('obfuscateBundle', () => {
 
     const logSpy = vi.spyOn(console, 'log');
 
-    const result = obfuscateBundle(finalConfig, fileName, bundleItem);
+    const result = await obfuscateBundle(finalConfig, fileName, bundleItem);
 
     expect(result.code).toBe('obfuscated code');
     expect(logSpy).toHaveBeenCalledWith('obfuscating test.js...');
     expect(logSpy).toHaveBeenCalledWith('obfuscation complete for test.js.');
+  });
+
+  it('should use obfuscatePro when pro is enabled', async () => {
+    const finalConfig: Config = {
+      ...defaultConfig,
+      options: {
+        vmObfuscation: true,
+      } as any,
+      pro: {
+        enable: true,
+        apiToken: 'test-token',
+        version: '5.0.3',
+        timeout: 300000,
+      },
+    };
+    const fileName = 'test.js';
+    const bundleItem = {
+      code: 'console.log("test")'
+    } as Rollup.OutputChunk;
+
+    const result = await obfuscateBundle(finalConfig, fileName, bundleItem);
+
+    expect(result.code).toBe('obfuscated code');
+    expect(javascriptObfuscator.obfuscatePro).toHaveBeenCalledWith(
+      bundleItem.code,
+      finalConfig.options,
+      {
+        apiToken: 'test-token',
+        timeout: 300000,
+        version: '5.0.3',
+      },
+      expect.any(Function),
+    );
+  });
+
+  it('should require api token when pro is enabled', async () => {
+    const finalConfig: Config = {
+      ...defaultConfig,
+      options: {
+        vmObfuscation: true,
+      } as any,
+      pro: {
+        enable: true,
+      },
+    };
+    const fileName = 'test.js';
+    const bundleItem = {
+      code: 'console.log("test")'
+    } as Rollup.OutputChunk;
+
+    await expect(obfuscateBundle(finalConfig, fileName, bundleItem))
+      .rejects
+      .toThrow('[vite-plugin-bundle-obfuscator] pro.apiToken is required when pro.enable is true.');
   });
 });
 
@@ -806,7 +870,7 @@ describe('utils/index - additional tests', () => {
       ObfuscatedFilesRegistry.getInstance().clear();
     });
 
-    it('should obfuscate lib bundle and return result', () => {
+    it('should obfuscate lib bundle and return result', async () => {
       const finalConfig: Config = {
         ...defaultConfig,
         log: true
@@ -815,14 +879,14 @@ describe('utils/index - additional tests', () => {
       const code = 'export const foo = "bar";';
 
       const logSpy = vi.spyOn(console, 'log');
-      const result = obfuscateLibBundle(finalConfig, fileName, code);
+      const result = await obfuscateLibBundle(finalConfig, fileName, code);
 
       expect(result.code).toBe('obfuscated code');
       expect(logSpy).toHaveBeenCalledWith('obfuscating lib.js...');
       expect(logSpy).toHaveBeenCalledWith('obfuscation complete for lib.js.');
     });
 
-    it('should skip already obfuscated files', () => {
+    it('should skip already obfuscated files', async () => {
       const finalConfig: Config = {
         ...defaultConfig,
         log: true
@@ -830,10 +894,10 @@ describe('utils/index - additional tests', () => {
       const fileName = 'lib.js';
       const code = 'export const foo = "bar";';
 
-      obfuscateLibBundle(finalConfig, fileName, code);
+      await obfuscateLibBundle(finalConfig, fileName, code);
 
       const logSpy = vi.spyOn(console, 'log');
-      const result = obfuscateLibBundle(finalConfig, fileName, code);
+      const result = await obfuscateLibBundle(finalConfig, fileName, code);
 
       expect(result.code).toBe(code);
       expect(logSpy).toHaveBeenCalledWith('skipping lib.js (already in obfuscated registry)');
@@ -911,7 +975,7 @@ describe('utils/index - additional tests', () => {
       ObfuscatedFilesRegistry.getInstance().clear();
     });
 
-    it('should skip already obfuscated files', () => {
+    it('should skip already obfuscated files', async () => {
       const finalConfig: Config = {
         ...defaultConfig,
         log: true
@@ -922,16 +986,16 @@ describe('utils/index - additional tests', () => {
         map: null
       } as Rollup.OutputChunk;
 
-      obfuscateBundle(finalConfig, fileName, bundleItem);
+      await obfuscateBundle(finalConfig, fileName, bundleItem);
 
       const logSpy = vi.spyOn(console, 'log');
-      const result = obfuscateBundle(finalConfig, fileName, bundleItem);
+      const result = await obfuscateBundle(finalConfig, fileName, bundleItem);
 
       expect(result.code).toBe(bundleItem.code);
       expect(logSpy).toHaveBeenCalledWith('skipping test.js (already in obfuscated registry)');
     });
 
-    it('should handle sourceMap option', () => {
+    it('should handle sourceMap option', async () => {
       const finalConfig: Config = {
         ...defaultConfig,
         log: false,
@@ -943,7 +1007,7 @@ describe('utils/index - additional tests', () => {
         map: {version: 3, sources: [], names: [], mappings: ''}
       } as unknown as Rollup.OutputChunk;
 
-      const result = obfuscateBundle(finalConfig, fileName, bundleItem);
+      const result = await obfuscateBundle(finalConfig, fileName, bundleItem);
       expect(result.code).toBe('obfuscated code');
     });
   });

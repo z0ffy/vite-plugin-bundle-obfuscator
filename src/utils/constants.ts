@@ -7,6 +7,7 @@ export const defaultConfig: Readonly<Config> = {
   apply: 'build',
   autoExcludeNodeModules: false,
   threadPool: false,
+  pro: false,
   obfuscateWorker: false,
   obfuscateWorkerExcludes: [],
   options: {
