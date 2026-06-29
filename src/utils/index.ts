@@ -325,15 +325,16 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
     const registry = ObfuscatedFilesRegistry.getInstance();
-    const workerConfig: Config = isEnablePro(finalConfig)
-      ? {
-          ...finalConfig,
-          pro: {
-            ...finalConfig.pro,
-            onProgress: undefined,
-          },
-        }
-      : finalConfig;
+    let workerConfig = finalConfig;
+
+    if (isObject(finalConfig.pro)) {
+      const pro = { ...finalConfig.pro };
+      delete pro.onProgress;
+      workerConfig = {
+        ...finalConfig,
+        pro,
+      };
+    }
 
     worker.postMessage({
       config: workerConfig,

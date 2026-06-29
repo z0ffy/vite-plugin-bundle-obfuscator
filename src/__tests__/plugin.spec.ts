@@ -554,6 +554,7 @@ const bundlerKey = getViteMajorVersion() >= 8 ? 'rolldownOptions' : 'rollupOptio
 
 describe('createWorkerTask', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     ObfuscatedFilesRegistry.getInstance().clear();
   });
 
@@ -575,6 +576,36 @@ describe('createWorkerTask', () => {
 
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('message', expect.any(Function));
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('error', expect.any(Function));
+  });
+
+  it('should remove onProgress before posting config to worker', () => {
+    const onProgress = vi.fn();
+    const finalConfig: Config = {
+      ...defaultConfig,
+      pro: {
+        enable: false,
+        onProgress,
+      },
+    };
+    const chunk: BundleList = [
+      ['test.js', {code: 'console.log("test")'} as Rollup.OutputChunk]
+    ];
+
+    createWorkerTask(finalConfig, chunk);
+
+    const mockWorkerInstance = vi.mocked(Worker).mock.results[0].value;
+
+    expect(mockWorkerInstance.postMessage).toHaveBeenCalledWith({
+      config: {
+        ...finalConfig,
+        pro: {
+          enable: false,
+        },
+      },
+      chunk,
+      registryState: [],
+    });
+    expect((finalConfig.pro as any).onProgress).toBe(onProgress);
   });
 });
 
