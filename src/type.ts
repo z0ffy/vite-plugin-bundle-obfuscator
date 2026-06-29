@@ -1,4 +1,4 @@
-import type { ObfuscatorOptions } from 'javascript-obfuscator';
+import type { IProApiConfig, ObfuscatorOptions } from 'javascript-obfuscator';
 import type { Plugin, Rollup } from 'vite';
 import { SizeUnit } from './utils/constants';
 
@@ -28,6 +28,17 @@ export interface ObfuscationResult {
   fileName: string;
   obfuscatedCode: string;
   map?: Rollup.SourceMapInput;
+}
+
+export interface ProConfig extends Partial<IProApiConfig> {
+  /**
+   * Enable or disable JavaScript Obfuscator Pro API.
+   */
+  enable: boolean;
+  /**
+   * Callback for Pro API progress messages.
+   */
+  onProgress?: (message: string, fileName: string) => void;
 }
 
 export interface Config {
@@ -72,6 +83,10 @@ export interface Config {
    * JavaScript obfuscator options.
    */
   options: ObfuscatorOptions;
+  /**
+   * Configuration for JavaScript Obfuscator Pro API.
+   */
+  pro: false | ProConfig;
   /**
    * Enable or disable obfuscation for Vite Web Worker bundles (?worker imports).
    */

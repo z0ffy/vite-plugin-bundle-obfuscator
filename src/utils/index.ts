@@ -4,10 +4,14 @@ import { Worker } from 'node:worker_threads';
 import path from 'node:path';
 import os from 'node:os';
 import { gzipSync } from 'node:zlib';
-import javascriptObfuscator from 'javascript-obfuscator';
+import javascriptObfuscator, {
+  type ObfuscationResult as JavaScriptObfuscationResult,
+  type ObfuscatorOptions,
+  type ProObfuscationResult,
+} from 'javascript-obfuscator';
 import remapping, { type SourceMapInput } from '@jridgewell/remapping';
 
-import type { BundleList, Config, FormatSizeResult, ObfuscationResult, SizeResult } from '../type';
+import type { BundleList, Config, FormatSizeResult, ObfuscationResult, ProConfig, SizeResult } from '../type';
 import { isArray, isBoolean, isFileNameExcluded, isObject, isRegExp, isString } from './is';
 import { CHUNK_PREFIX, LOG_COLOR, SizeUnit, VENDOR_MODULES } from './constants';
 
@@ -101,6 +105,10 @@ export function isEnableThreadPool(finalConfig: Config): boolean {
   return isEnabledFeature(finalConfig.threadPool);
 }
 
+export function isEnablePro(finalConfig: Config): finalConfig is Config & { pro: ProConfig } {
+  return isObject(finalConfig.pro) && finalConfig.pro.enable;
+}
+
 export function isEnableAutoExcludesNodeModules(finalConfig: Config): boolean {
   return isEnabledFeature(finalConfig.autoExcludeNodeModules);
 }
@@ -165,6 +173,47 @@ export function composeSourcemaps(map1: Rollup.SourceMapInput | null, map2: Roll
   return composed as Rollup.SourceMapInput;
 }
 
+type ObfuscatorResult = JavaScriptObfuscationResult | ProObfuscationResult;
+
+function validateProConfig(finalConfig: Config): void {
+  if (!isEnablePro(finalConfig)) return;
+
+  if (!finalConfig.pro.apiToken) {
+    throw new Error('[vite-plugin-bundle-obfuscator] pro.apiToken is required when pro.enable is true.');
+  }
+
+  const options = finalConfig.options as Record<string, unknown>;
+  if (!options.vmObfuscation && !options.parseHtml) {
+    throw new Error('[vite-plugin-bundle-obfuscator] options.vmObfuscation or options.parseHtml is required when pro.enable is true.');
+  }
+}
+
+export async function runObfuscator(
+  finalConfig: Config,
+  code: string,
+  options: ObfuscatorOptions,
+  fileName: string,
+  onProgress?: (message: string, fileName: string) => void,
+): Promise<ObfuscatorResult> {
+  if (!isEnablePro(finalConfig)) {
+    return javascriptObfuscator.obfuscate(code, options);
+  }
+
+  validateProConfig(finalConfig);
+  const { apiToken, onProgress: configOnProgress, timeout, version } = finalConfig.pro;
+
+  return javascriptObfuscator.obfuscatePro(
+    code,
+    options,
+    {
+      apiToken: apiToken!,
+      timeout,
+      version,
+    },
+    message => (onProgress ?? configOnProgress)?.(message, fileName),
+  );
+}
+
 export class ObfuscatedFilesRegistry {
   private static instance: ObfuscatedFilesRegistry;
   private obfuscatedFiles: Set<string> = new Set();
@@ -210,7 +259,7 @@ export class ObfuscatedFilesRegistry {
   }
 }
 
-export function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): { code: string; map: Rollup.SourceMapInput } {
+export async function obfuscateBundle(finalConfig: Config, fileName: string, bundleItem: Rollup.OutputChunk): Promise<{ code: string; map: Rollup.SourceMapInput }> {
   const _log = new Log(finalConfig.log);
   const registry = ObfuscatedFilesRegistry.getInstance();
 
@@ -227,7 +276,7 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
         sourceMapFileName: `${path.basename(fileName)}.map`,
       }
     : finalConfig.options;
-  const obfuscated = javascriptObfuscator.obfuscate(bundleItem.code, fileSpecificOptions);
+  const obfuscated = await runObfuscator(finalConfig, bundleItem.code, fileSpecificOptions, fileName);
   _log.info(`obfuscation complete for ${fileName}.`);
 
   registry.markAsObfuscated(fileName);
@@ -243,7 +292,7 @@ export function obfuscateBundle(finalConfig: Config, fileName: string, bundleIte
   };
 }
 
-export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): { code: string; map: Rollup.SourceMapInput } {
+export async function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): Promise<{ code: string; map: Rollup.SourceMapInput }> {
   const _log = new Log(finalConfig.log);
   const registry = ObfuscatedFilesRegistry.getInstance();
 
@@ -260,7 +309,7 @@ export function obfuscateLibBundle(finalConfig: Config, fileName: string, code: 
         sourceMapFileName: `${path.basename(fileName)}.map`,
       }
     : finalConfig.options;
-  const obfuscated = javascriptObfuscator.obfuscate(code, fileSpecificOptions);
+  const obfuscated = await runObfuscator(finalConfig, code, fileSpecificOptions, fileName);
   _log.info(`obfuscation complete for ${fileName}.`);
 
   registry.markAsObfuscated(fileName);
@@ -276,14 +325,37 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
     const registry = ObfuscatedFilesRegistry.getInstance();
+    let workerConfig = finalConfig;
+
+    if (isObject(finalConfig.pro)) {
+      const pro = { ...finalConfig.pro };
+      delete pro.onProgress;
+      workerConfig = {
+        ...finalConfig,
+        pro,
+      };
+    }
 
     worker.postMessage({
-      config: finalConfig,
+      config: workerConfig,
       chunk: JSON.parse(JSON.stringify(chunk)),
       registryState: registry.serialize(),
     });
 
     worker.on('message', (value) => {
+      if (value.error) {
+        const err = new Error(value.error.message || 'Worker obfuscation failed');
+        if (value.error.stack) err.stack = value.error.stack;
+        reject(err);
+        worker.unref();
+        return;
+      }
+
+      if (value.progress && isEnablePro(finalConfig)) {
+        finalConfig.pro.onProgress?.(value.progress.message, value.progress.fileName);
+        return;
+      }
+
       if (value.results && Array.isArray(value.results)) {
         chunk.forEach(([fileName, bundleItem]) => {
           const result = value.results.find((i: ObfuscationResult) => i.fileName === fileName);

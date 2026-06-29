@@ -39,6 +39,7 @@ JavaScript `obfuscator` plugin for `Vite` environments
 - ✅ ⚡ Supports `JavaScript obfuscation` in `Vite` projects.
 - ✅ 🚀 Multi-threading support for better performance.
 - ✅ ⚙️ Customizable obfuscator options to fit your needs.
+- ✅ 🔐 Optional JavaScript Obfuscator Pro API support.
 - ✅ 🛡️ Auto-excludes `node_modules`.
 - ✅ 📦 Support the `node_modules` split chunk.
 
@@ -95,6 +96,7 @@ const allObfuscatorConfig = {
   // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
   threadPool: true,
   // threadPool: { enable: true, size: 4 }
+  pro: false,
   options: {
     compact: true,
     controlFlowFlattening: true,
@@ -155,6 +157,34 @@ export default {
 };
 ```
 
+## 🔐 JavaScript Obfuscator Pro API
+
+Pro API support is disabled by default. Enable it only when you need `javascript-obfuscator` Pro features such as `vmObfuscation` or `parseHtml`.
+
+```js
+import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator({
+      pro: {
+        enable: true,
+        apiToken: process.env.JAVASCRIPT_OBFUSCATOR_PRO_API_TOKEN,
+        version: '5.0.3',
+        timeout: 300000,
+      },
+      options: {
+        vmObfuscation: true,
+        vmBytecodeFormat: 'binary',
+        compact: true,
+      },
+    }),
+  ],
+};
+```
+
+`pro` only configures the Pro API call. All obfuscation options, including Pro options such as `vmObfuscation`, `vmBytecodeFormat`, `optionsPreset`, and `parseHtml`, should stay in `options`.
+
 ## 🧵 Web Worker Support
 
 By default, worker bundles generated from `?worker` / `new Worker(new URL(...))` are **not** obfuscated.
@@ -197,6 +227,7 @@ With **7000+ modules** and **400+ bundles** on a **4C 8G** machine:
 | autoExcludeNodeModules | Enable auto exclude node_modules.                                       | boolean \| ({ enable: true; manualChunks: string[] } \| { enable: false })          | false                   | v1.0.9 (originally boolean, extended to current type in v1.3.0) |
 | obfuscateWorker        | Enable or disable obfuscation for Web Worker bundles.                   | boolean \| { enable: boolean }                                                     | false                   | v1.10.0                                                         |
 | obfuscateWorkerExcludes | Additional excludes only for workers (final: `excludes + obfuscateWorkerExcludes`). | (RegExp \| string)[]                                                               | []                      | v1.10.0                                                         |
+| pro                    | JavaScript Obfuscator Pro API configuration.                            | false \| { enable: boolean; apiToken?: string; version?: string; timeout?: number; onProgress?: (message: string, fileName: string) => void } | false                   | -                                                               |
 | log                    | Show or hide log output.                                                | boolean                                                                             | true                    | v1.0.4                                                          |
 | enable                 | Enable or disable the obfuscator.                                       | boolean                                                                             | true                    | v1.0.1                                                          |
 | excludes               | Bundle names to be excluded. Starting from v1.0.8, RegExp is supported. | (RegExp \| string)[]                                                                | []                      | v1.0.0                                                          |

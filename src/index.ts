@@ -53,11 +53,11 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
       await Promise.all(workerPromises);
     } else {
-      bundleList.forEach(([fileName, bundleItem]) => {
-        const { code, map } = obfuscateBundle(configToUse, fileName, bundleItem);
+      for (const [fileName, bundleItem] of bundleList) {
+        const { code, map } = await obfuscateBundle(configToUse, fileName, bundleItem);
         bundleItem.code = code;
         bundleItem.map = map as any;
-      });
+      }
     }
 
     analyzer.end(bundleList);
@@ -200,18 +200,20 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   const renderChunkHandler: Rollup.Plugin['renderChunk'] = (code: string, chunk: Rollup.RenderedChunk) => {
     if (!finalConfig.enable || !_isLibMode || _isSsrBuild) return null;
 
-    const analyzer = new CodeSizeAnalyzer(_log);
-    const bundleList = [[chunk.name, { code }]] as BundleList;
-    analyzer.start(bundleList);
+    return (async () => {
+      const analyzer = new CodeSizeAnalyzer(_log);
+      const bundleList = [[chunk.name, { code }]] as BundleList;
+      analyzer.start(bundleList);
 
-    const { code: obfuscatedCode, map } = obfuscateLibBundle(finalConfig, chunk.name, code);
+      const { code: obfuscatedCode, map } = await obfuscateLibBundle(finalConfig, chunk.name, code);
 
-    analyzer.end(bundleList);
+      analyzer.end(bundleList);
 
-    return {
-      code: obfuscatedCode,
-      map,
-    };
+      return {
+        code: obfuscatedCode,
+        map,
+      };
+    })();
   };
 
   const getTransformIndexHtml = () => {

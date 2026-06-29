@@ -39,6 +39,7 @@
 - ✅ ⚡ 支持`Vite`项目中的`JavaScript`混淆。
 - ✅ 🚀 多线程支持，以获得更好的性能。
 - ✅ ⚙️ 可定制的混淆器选项，以满足您的需求。
+- ✅ 🔐 可选支持 JavaScript Obfuscator Pro API。
 - ✅ 🛡️ 自动排除`node_modules`。
 - ✅ 📦 支持`node_modules`拆分块。
 
@@ -93,6 +94,7 @@ const allObfuscatorConfig = {
   // autoExcludeNodeModules: { enable: true, manualChunks: ['vue'] }
   threadPool: false,
   // threadPool: { enable: true, size: 4 }
+  pro: false,
   options: {
     compact: true,
     controlFlowFlattening: true,
@@ -153,6 +155,34 @@ export default {
 };
 ```
 
+## 🔐 JavaScript Obfuscator Pro API
+
+Pro API 默认关闭。只有需要 `javascript-obfuscator` Pro 功能，例如 `vmObfuscation` 或 `parseHtml` 时才需要显式开启。
+
+```js
+import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+
+export default {
+  plugins: [
+    vitePluginBundleObfuscator({
+      pro: {
+        enable: true,
+        apiToken: process.env.JAVASCRIPT_OBFUSCATOR_PRO_API_TOKEN,
+        version: '5.0.3',
+        timeout: 300000,
+      },
+      options: {
+        vmObfuscation: true,
+        vmBytecodeFormat: 'binary',
+        compact: true,
+      },
+    }),
+  ],
+};
+```
+
+`pro` 只用于配置 Pro API 调用。所有混淆参数，包括 `vmObfuscation`、`vmBytecodeFormat`、`optionsPreset`、`parseHtml` 等 Pro 混淆参数，都继续写在 `options` 中。
+
 ## 🧵 Web Worker 支持
 
 默认**不会**对 `?worker` / `new Worker(new URL(...))` 生成的 worker bundle 进行混淆。
@@ -195,6 +225,7 @@ vitePluginBundleObfuscator({
 | autoExcludeNodeModules | 启用自动排除node_modules。        | boolean \| ({ enable: true; manualChunks: string[] } \| { enable: false })          | false                   | v1.0.9（原本为boolean，在v1.3.0版本中扩展到当前类型） |
 | obfuscateWorker        | 启用或禁用 Web Worker 产物混淆。       | boolean \| { enable: boolean }                                                     | false                   | v1.10.0                              |
 | obfuscateWorkerExcludes | 仅对 worker 额外排除（最终：`excludes + obfuscateWorkerExcludes`）。 | (RegExp \| string)[]                                                                | []                      | v1.10.0                              |
+| pro                    | JavaScript Obfuscator Pro API 配置。 | false \| { enable: boolean; apiToken?: string; version?: string; timeout?: number; onProgress?: (message: string, fileName: string) => void } | false                   | -                                    |
 | log                    | 显示或隐藏日志输出。                 | boolean                                                                             | true                    | v1.0.4                               |
 | enable                 | 启用或禁用混淆器。                  | boolean                                                                             | true                    | v1.0.1                               |
 | excludes               | 排除的bundle名。从v1.0.8开始，支持正则。 | (RegExp \| string)[]                                                                | []                      | v1.0.0                               |
