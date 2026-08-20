@@ -2,6 +2,7 @@
   "name": "vite-plugin-bundle-obfuscator",
   "version": "1.13.0",
   "description": "JavaScript obfuscator plugin for Vite environments",
+  "type": "module",
   "keywords": [
     "vite",
     "vite-rolldown",
@@ -28,13 +29,15 @@
     "/dist"
   ],
   "exports": {
-    "require": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "import": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.mjs"
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "sideEffects": false,
@@ -48,6 +51,7 @@
     "prepare": "husky",
     "start": "npm run build -- --watch",
     "test": "vitest",
+    "test:types": "tsc -p test-dts/tsconfig.json",
     "version": "auto-changelog"
   },
   "dependencies": {

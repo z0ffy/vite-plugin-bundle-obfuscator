@@ -1,0 +1,8 @@
+{
+  "name": "vite-plugin-bundle-obfuscator-compatibility-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  }
+}

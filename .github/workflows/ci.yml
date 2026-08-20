@@ -96,11 +96,27 @@ jobs:
 
       - name: Check build output
         run: |
-          ls -la dist/
-          if [ ! -f "dist/index.js" ] || [ ! -f "dist/index.mjs" ] || [ ! -f "dist/index.d.ts" ]; then
-            echo "Build output missing required files"
-            exit 1
-          fi
+          find dist -maxdepth 3 -type f -print
+          for file in \
+            dist/index.cjs \
+            dist/index.mjs \
+            dist/index.d.ts \
+            dist/index.d.cts \
+            dist/worker/index.cjs \
+            dist/worker/index.mjs; do
+            if [ ! -f "$file" ]; then
+              echo "Build output missing required file: $file"
+              exit 1
+            fi
+          done
+
+      - name: Check published types
+        run: pnpm run test:types
+
+      - name: Pack package
+        run: |
+          mkdir -p package-artifact
+          pnpm pack --pack-destination package-artifact
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -108,3 +124,63 @@ jobs:
           name: dist
           path: dist/
           retention-days: 7
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: package-artifact/*.tgz
+          retention-days: 7
+
+  vite-compatibility:
+    name: Vite ${{ matrix.vite-version }} Compatibility
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        vite-version: ['4.5.14', '5.4.21', '6.4.1', '7.2.2', '8.2.1']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: ${{ runner.temp }}/plugin-package
+
+      - name: Install compatibility fixture
+        working-directory: test-fixtures/vite
+        env:
+          VITE_VERSION: ${{ matrix.vite-version }}
+        run: |
+          package_tarball=$(find "${RUNNER_TEMP}/plugin-package" -name '*.tgz' -print -quit)
+          test -n "$package_tarball"
+          pnpm add --save-dev "vite@${VITE_VERSION}" "$package_tarball"
+
+      - name: Build compatibility fixture
+        working-directory: test-fixtures/vite
+        run: pnpm run build
+
+      - name: Verify obfuscated output
+        working-directory: test-fixtures/vite
+        run: |
+          test -f dist/index.html
+          test -n "$(find dist/assets -name '*.js' -print -quit)"
+          if grep -R "VITE_OBFUSCATOR_COMPATIBILITY_SENTINEL" dist/assets --include='*.js'; then
+            echo "Expected JavaScript output to be obfuscated"
+            exit 1
+          fi
