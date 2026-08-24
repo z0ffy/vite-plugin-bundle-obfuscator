@@ -24,13 +24,15 @@ export default defineConfig([
   {
     ...baseConfig,
     format: ['cjs'],
+    outExtension: () => ({ js: '.cjs', dts: '.d.cts' }),
     define: {
-      WORKER_FILE_PATH: JSON.stringify('./worker/index.js'),
+      WORKER_FILE_PATH: JSON.stringify('./worker/index.cjs'),
     },
   },
   {
     ...baseConfig,
     format: ['esm'],
+    outExtension: () => ({ js: '.mjs', dts: '.d.ts' }),
     define: {
       WORKER_FILE_PATH: JSON.stringify('./worker/index.mjs'),
     },
