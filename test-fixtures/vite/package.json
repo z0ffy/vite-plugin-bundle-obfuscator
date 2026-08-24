@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build"
+    "build": "pnpm run build:esm && pnpm run build:cjs",
+    "build:esm": "vite build --config vite.config.mjs --outDir dist/esm",
+    "build:cjs": "vite build --config vite.config.cjs --outDir dist/cjs"
   }
 }

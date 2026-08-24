@@ -178,9 +178,11 @@ jobs:
       - name: Verify obfuscated output
         working-directory: test-fixtures/vite
         run: |
-          test -f dist/index.html
-          test -n "$(find dist/assets -name '*.js' -print -quit)"
-          if grep -R "VITE_OBFUSCATOR_COMPATIBILITY_SENTINEL" dist/assets --include='*.js'; then
-            echo "Expected JavaScript output to be obfuscated"
-            exit 1
-          fi
+          for module_format in esm cjs; do
+            test -f "dist/${module_format}/index.html"
+            test -n "$(find "dist/${module_format}/assets" -name '*.js' -print -quit)"
+            if grep -R "VITE_OBFUSCATOR_COMPATIBILITY_SENTINEL" "dist/${module_format}/assets" --include='*.js'; then
+              echo "Expected ${module_format} JavaScript output to be obfuscated"
+              exit 1
+            fi
+          done
