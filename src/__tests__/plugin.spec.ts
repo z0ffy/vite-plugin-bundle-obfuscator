@@ -23,8 +23,10 @@ import {
   obfuscateLibBundle,
   formatSize,
   modifyChunkName,
-  ObfuscatedFilesRegistry
+  ObfuscatedFilesRegistry,
+  serializeSourcemap
 } from "../utils";
+import * as utils from "../utils";
 import {BundleList, Config} from "../type";
 import {
   isArray,
@@ -320,6 +322,24 @@ describe('composeSourcemaps', () => {
     const recoveredSource = sourceContentFor(trace, firstLine.source as string);
     expect(recoveredSource).toBe(originalSource);
   });
+
+  it('should serialize a composed map as JSON before crossing a worker boundary', () => {
+    const map: Rollup.SourceMapInput = {
+      version: 3,
+      sources: ['source.js'],
+      names: [],
+      mappings: 'AAAA',
+    };
+    const composed = composeSourcemaps(map, map);
+
+    const serialized = serializeSourcemap(composed);
+
+    expect(serialized).not.toBe('[object Object]');
+    expect(JSON.parse(serialized as string)).toMatchObject({
+      version: 3,
+      sources: ['source.js'],
+    });
+  });
 });
 
 describe('CodeSizeAnalyzer', () => {
@@ -606,6 +626,38 @@ describe('createWorkerTask', () => {
       registryState: [],
     });
     expect((finalConfig.pro as any).onProgress).toBe(onProgress);
+  });
+
+  it('should restore a serialized worker sourcemap before assigning it to a chunk', async () => {
+    const chunk: BundleList = [
+      ['test.js', {code: 'console.log("test")'} as Rollup.OutputChunk]
+    ];
+    const task = createWorkerTask({...defaultConfig}, chunk);
+    const mockWorkerInstance = vi.mocked(Worker).mock.results[0].value;
+    const messageHandler = (mockWorkerInstance.on as any).mock.calls
+      .find(([event]: [string]) => event === 'message')[1];
+
+    messageHandler({
+      results: [{
+        fileName: 'test.js',
+        obfuscatedCode: 'obfuscated code',
+        map: JSON.stringify({
+          version: 3,
+          sources: ['source.js'],
+          names: [],
+          mappings: 'AAAA',
+        }),
+      }],
+      registryState: [],
+    });
+    await task;
+
+    const emittedMap = chunk[0][1].map?.toString();
+    expect(emittedMap).not.toBe('[object Object]');
+    expect(JSON.parse(emittedMap as string)).toMatchObject({
+      version: 3,
+      sources: ['source.js'],
+    });
   });
 });
 
@@ -1314,6 +1366,50 @@ describe('viteBundleObfuscator plugin', () => {
       expect(w1).not.toBe(w2);
     });
 
+    it.each([
+      [8, true, true],
+      [8, 'hidden', true],
+      [8, 'inline', false],
+      [8, false, false],
+      [7, true, true],
+      [7, 'hidden', true],
+      [7, 'inline', false],
+      [7, false, false],
+      [6, true, true],
+      [6, 'hidden', true],
+      [6, 'inline', false],
+      [6, false, false],
+      [5, true, false],
+      [4, true, false],
+    ])('should remove only the duplicate worker entry map (Vite %s, sourcemap %s)', async (version, sourcemap, removeEntryMap) => {
+      const versionSpy = vi.spyOn(utils, 'getViteMajorVersion').mockReturnValue(version as number);
+      try {
+        const plugin = viteBundleObfuscator({obfuscateWorker: true, threadPool: false}) as Plugin;
+        const config = {worker: {plugins: []}, build: {sourcemap}} as any;
+        // @ts-ignore
+        plugin.config(config, {command: 'build', mode: 'production'});
+        if (version === 4) {
+          // @ts-ignore
+          plugin.configResolved(config);
+        }
+        const plugins = version === 4 ? config.worker.plugins : config.worker.plugins();
+        const workerPlugin = plugins.find((p: Plugin) => p.name === 'vite-plugin-bundle-obfuscator:worker');
+        const map = {version: 3, names: [], sources: ['worker.js'], mappings: 'AAAA'};
+        const bundle = {
+          'worker.js': {type: 'chunk', isEntry: true, code: 'self.onmessage = () => {}', map},
+          'worker.js.map': {type: 'asset', source: JSON.stringify(map)},
+          'shared.js': {type: 'chunk', isEntry: false, code: 'export const value = 1', map},
+          'shared.js.map': {type: 'asset', source: JSON.stringify(map)},
+        } as unknown as Rollup.OutputBundle;
+        await workerPlugin.generateBundle({sourcemap}, bundle);
+        expect('worker.js.map' in bundle).toBe(!removeEntryMap);
+        expect(bundle['shared.js.map']).toBeDefined();
+        expect((bundle['worker.js'] as Rollup.OutputChunk).map).toBeTruthy();
+      } finally {
+        versionSpy.mockRestore();
+      }
+    });
+
     it('should not auto inject worker plugin when disabled', () => {
       const plugin = viteBundleObfuscator({obfuscateWorker: false}) as Plugin;
       const config = {} as any;
@@ -1341,6 +1437,55 @@ describe('viteBundleObfuscator plugin', () => {
   });
 
   describe('configResolved hook', () => {
+    describe('Vite 4 worker compatibility', () => {
+      beforeEach(() => {
+        vi.spyOn(utils, 'getViteMajorVersion').mockReturnValue(4);
+      });
+
+      afterEach(() => {
+        vi.mocked(utils.getViteMajorVersion).mockRestore();
+      });
+
+      it('should preserve resolved worker plugins and inject only once', () => {
+        const plugin = viteBundleObfuscator({obfuscateWorker: true}) as Plugin;
+        const userPlugin = {name: 'user-worker-plugin'};
+        const plugins = [userPlugin];
+        const config = {worker: {plugins}};
+        // @ts-ignore
+        plugin.config(config, {command: 'build', mode: 'production'});
+        expect(config.worker.plugins).toBe(plugins);
+
+        const resolved = {worker: {plugins}, build: {sourcemap: true}};
+        // @ts-ignore
+        plugin.configResolved(resolved);
+        // @ts-ignore
+        plugin.configResolved(resolved);
+        expect(resolved.worker.plugins).toBe(plugins);
+        expect(plugins.map(p => p.name)).toEqual([
+          'user-worker-plugin', 'vite-plugin-bundle-obfuscator:worker',
+        ]);
+      });
+
+      it.each([
+        {enable: false},
+        {obfuscateWorker: false},
+      ])('should respect disabled options %j', options => {
+        const plugin = viteBundleObfuscator(options) as Plugin;
+        const resolved = {worker: {plugins: []}, build: {sourcemap: false}};
+        // @ts-ignore
+        plugin.configResolved(resolved);
+        expect(resolved.worker.plugins).toEqual([]);
+      });
+
+      it('should not inject for SSR builds', () => {
+        const plugin = viteBundleObfuscator({obfuscateWorker: true}) as Plugin;
+        const resolved = {worker: {plugins: []}, build: {ssr: true}};
+        // @ts-ignore
+        plugin.configResolved(resolved);
+        expect(resolved.worker.plugins).toEqual([]);
+      });
+    });
+
     it('should set sourceMap options when sourcemap is enabled', () => {
       const plugin = viteBundleObfuscator() as Plugin;
       const resolvedConfig = {

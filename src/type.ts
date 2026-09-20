@@ -27,7 +27,7 @@ export interface FormatSizeResult {
 export interface ObfuscationResult {
   fileName: string;
   obfuscatedCode: string;
-  map?: Rollup.SourceMapInput;
+  map?: string | null;
 }
 
 export interface ProConfig extends Partial<IProApiConfig> {

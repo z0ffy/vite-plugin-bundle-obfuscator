@@ -5,6 +5,7 @@ export default {
     vitePluginBundleObfuscator({
       log: false,
       threadPool: true,
+      obfuscateWorker: true,
       options: {
         compact: true,
         identifierNamesGenerator: 'hexadecimal',
@@ -14,4 +15,7 @@ export default {
       },
     }),
   ],
+  build: {
+    sourcemap: true,
+  },
 };

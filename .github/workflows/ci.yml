@@ -173,15 +173,34 @@ jobs:
 
       - name: Build compatibility fixture
         working-directory: test-fixtures/vite
-        run: pnpm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run build 2>&1 | tee "${RUNNER_TEMP}/vite-build.log"
+          if grep -F 'overwrites a previously emitted file of the same name' "${RUNNER_TEMP}/vite-build.log"; then
+            echo "Unexpected conflicting build assets"
+            exit 1
+          fi
 
       - name: Verify obfuscated output
         working-directory: test-fixtures/vite
         run: |
           for module_format in esm cjs; do
+            assets_dir="dist/${module_format}/assets"
             test -f "dist/${module_format}/index.html"
-            test -n "$(find "dist/${module_format}/assets" -name '*.js' -print -quit)"
-            if grep -R "VITE_OBFUSCATOR_COMPATIBILITY_SENTINEL" "dist/${module_format}/assets" --include='*.js'; then
+            test -n "$(find "$assets_dir" -name '*.js' -print -quit)"
+
+            worker_file=$(find "$assets_dir" -name 'worker-*.js' -print -quit)
+            if [ -z "$worker_file" ] || [ ! -f "${worker_file}.map" ]; then
+              echo "Expected ${module_format} worker and worker sourcemap output"
+              exit 1
+            fi
+
+            while IFS= read -r map_file; do
+              node -e "JSON.parse(require('node:fs').readFileSync(process.argv[1], 'utf8'))" "$map_file"
+            done < <(find "$assets_dir" -name '*.map' -type f)
+
+            if grep -R "OBFUSCATOR_COMPATIBILITY_SENTINEL" "$assets_dir" --include='*.js'; then
               echo "Expected ${module_format} JavaScript output to be obfuscated"
               exit 1
             fi

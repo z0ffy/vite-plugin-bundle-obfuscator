@@ -63,13 +63,37 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     analyzer.end(bundleList);
   };
 
+  const createWorkerPlugin = (): Plugin => ({
+    name: 'vite-plugin-bundle-obfuscator:worker',
+    apply: finalConfig.apply,
+    enforce: 'post',
+    async generateBundle(outputOptions, bundle) {
+      if (!finalConfig.enable || !bundle || _isSsrBuild) return;
+      const workerConfig: Config = {
+        ...finalConfig,
+        excludes: [...finalConfig.excludes, ...finalConfig.obfuscateWorkerExcludes],
+      };
+      await obfuscateAllChunks(bundle, { config: workerConfig, log: new Log(workerConfig.log) });
+      // Vite 6+ emits the worker entry map from chunk.map after bundling.
+      // Remove the duplicate map asset emitted by Rollup/Rolldown.
+      if (getViteMajorVersion() >= 6 && (outputOptions.sourcemap === true || outputOptions.sourcemap === 'hidden')) {
+        for (const [fileName, chunk] of getValidBundleList(workerConfig, bundle)) {
+          const mapFileName = `${fileName}.map`;
+          if (chunk.isEntry && chunk.map && bundle[mapFileName]?.type === 'asset') {
+            delete bundle[mapFileName];
+          }
+        }
+      }
+    },
+  });
+
   const modifyConfigHandler: ViteConfigFn = (config, env) => {
     _isSsrBuild = !!env.isSsrBuild;
     _isLibMode = isLibMode(config);
     _isNuxtProject = isNuxtProject(config);
     _isLaravelProject = isLaravelProject(config);
 
-    if (finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
+    if (getViteMajorVersion() >= 5 && finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
       const original = config.worker?.plugins;
 
       config.worker = config.worker || {};
@@ -90,19 +114,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
         return [
           ...originalPlugins,
-          {
-            name: 'vite-plugin-bundle-obfuscator:worker',
-            apply: finalConfig.apply,
-            enforce: 'post',
-            async generateBundle(_outputOptions, bundle) {
-              if (!finalConfig.enable || !bundle || _isSsrBuild) return;
-              const workerConfig: Config = {
-                ...finalConfig,
-                excludes: [...finalConfig.excludes, ...finalConfig.obfuscateWorkerExcludes],
-              };
-              await obfuscateAllChunks(bundle, { config: workerConfig, log: new Log(workerConfig.log) });
-            },
-          } satisfies Plugin,
+          createWorkerPlugin(),
         ];
       };
     }
@@ -172,6 +184,15 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   };
 
   const configResolvedHandler: (resolvedConfig: ResolvedConfig) => void | Promise<void> = (resolvedConfig) => {
+    // Vite 4 resolves worker plugins before config hooks, so inject into the resolved list.
+    if (getViteMajorVersion() === 4 && finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)
+      && !resolvedConfig.build.ssr) {
+      const workerPlugins = resolvedConfig.worker.plugins as unknown as Plugin[];
+      if (!workerPlugins.some(plugin => plugin.name === 'vite-plugin-bundle-obfuscator:worker')) {
+        workerPlugins.push(createWorkerPlugin());
+      }
+    }
+
     const sourcemap = resolvedConfig.build.sourcemap;
     if (sourcemap) {
       const output = getBundlerOptions(resolvedConfig.build)?.output;

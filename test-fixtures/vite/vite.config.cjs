@@ -6,6 +6,7 @@ module.exports = {
     vitePluginBundleObfuscator({
       log: false,
       threadPool: true,
+      obfuscateWorker: true,
       options: {
         compact: true,
         identifierNamesGenerator: 'hexadecimal',
@@ -15,4 +16,7 @@ module.exports = {
       },
     }),
   ],
+  build: {
+    sourcemap: true,
+  },
 };
