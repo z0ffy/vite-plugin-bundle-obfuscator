@@ -1371,6 +1371,15 @@ describe('viteBundleObfuscator plugin', () => {
       [8, 'hidden', true],
       [8, 'inline', false],
       [8, false, false],
+      [7, true, true],
+      [7, 'hidden', true],
+      [7, 'inline', false],
+      [7, false, false],
+      [6, true, true],
+      [6, 'hidden', true],
+      [6, 'inline', false],
+      [6, false, false],
+      [5, true, false],
       [4, true, false],
     ])('should remove only the duplicate worker entry map (Vite %s, sourcemap %s)', async (version, sourcemap, removeEntryMap) => {
       const versionSpy = vi.spyOn(utils, 'getViteMajorVersion').mockReturnValue(version as number);

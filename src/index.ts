@@ -74,9 +74,9 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
         excludes: [...finalConfig.excludes, ...finalConfig.obfuscateWorkerExcludes],
       };
       await obfuscateAllChunks(bundle, { config: workerConfig, log: new Log(workerConfig.log) });
-      // Vite emits the worker entry map from chunk.map after Rolldown finishes.
-      // Remove its duplicate asset; Rolldown normalizes chunk.map after this hook.
-      if (getViteMajorVersion() >= 8 && (outputOptions.sourcemap === true || outputOptions.sourcemap === 'hidden')) {
+      // Vite 6+ emits the worker entry map from chunk.map after bundling.
+      // Remove the duplicate map asset emitted by Rollup/Rolldown.
+      if (getViteMajorVersion() >= 6 && (outputOptions.sourcemap === true || outputOptions.sourcemap === 'hidden')) {
         for (const [fileName, chunk] of getValidBundleList(workerConfig, bundle)) {
           const mapFileName = `${fileName}.map`;
           if (chunk.isEntry && chunk.map && bundle[mapFileName]?.type === 'asset') {
