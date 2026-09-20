@@ -1,8 +1,13 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.12.0...HEAD) - 
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.13.2...HEAD)
 
-- chore(release): bump version to 1.12.0
+### [v1.13.2](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.13.1...v1.13.2) -  20 September 2026
+
+- fix: serialize Worker sourcemaps correctly across threads instead of emitting `[object Object]` ([#332](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues/332)).
+- fix: inject the Worker obfuscation plugin correctly on Vite 4.
+- fix: prevent duplicate Worker entry sourcemap output on Vite 6, 7, and 8.
+- test: add Worker sourcemap regression tests and compatibility checks.
 
 ### [v1.12.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.11.0...v1.12.0) -  11 May 2026 
 
