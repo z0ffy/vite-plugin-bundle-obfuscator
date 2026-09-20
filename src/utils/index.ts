@@ -173,6 +173,11 @@ export function composeSourcemaps(map1: Rollup.SourceMapInput | null, map2: Roll
   return composed as Rollup.SourceMapInput;
 }
 
+export function serializeSourcemap(map: Rollup.SourceMapInput | null): string | null {
+  if (!map) return null;
+  return typeof map === 'string' ? map : JSON.stringify(map);
+}
+
 type ObfuscatorResult = JavaScriptObfuscationResult | ProObfuscationResult;
 
 function validateProConfig(finalConfig: Config): void {
@@ -361,7 +366,9 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
           const result = value.results.find((i: ObfuscationResult) => i.fileName === fileName);
           if (result && result.obfuscatedCode) {
             bundleItem.code = result.obfuscatedCode;
-            bundleItem.map = result.map || null;
+            bundleItem.map = result.map
+              ? remapping(result.map as SourceMapInput, () => null)
+              : null;
           }
         });
       }

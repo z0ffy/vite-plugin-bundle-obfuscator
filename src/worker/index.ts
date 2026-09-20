@@ -1,7 +1,7 @@
 import { parentPort } from 'node:worker_threads';
 import path from 'node:path';
 import { ObfuscatorOptions } from 'javascript-obfuscator';
-import { composeSourcemaps, Log, ObfuscatedFilesRegistry, runObfuscator } from '../utils';
+import { composeSourcemaps, Log, ObfuscatedFilesRegistry, runObfuscator, serializeSourcemap } from '../utils';
 import type { ObfuscationResult, WorkerMessage } from '../type';
 
 if (parentPort) {
@@ -50,14 +50,16 @@ if (parentPort) {
         registry.markAsObfuscated(fileName);
         _log.info(`worker added ${fileName} to obfuscated files registry`);
 
+        const composedMap = composeSourcemaps(
+          JSON.parse(JSON.stringify(bundleItem.map) || 'null'), // strip methods
+          JSON.parse(obfuscated.getSourceMap() || 'null'),
+          _log.info.bind(_log),
+        );
+
         results.push({
           fileName,
           obfuscatedCode: obfuscated.getObfuscatedCode(),
-          map: composeSourcemaps(
-            JSON.parse(JSON.stringify(bundleItem.map) || 'null'), // strip methods
-            JSON.parse(obfuscated.getSourceMap() || 'null'),
-            _log.info.bind(_log),
-          ),
+          map: serializeSourcemap(composedMap),
         });
       }
 
