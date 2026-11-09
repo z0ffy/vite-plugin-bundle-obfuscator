@@ -133,7 +133,10 @@ export function getThreadPoolSize(finalConfig: Config): number {
   if (isBoolean(threadPool)) return defaultSize;
   if (isObject(threadPool)) {
     if (threadPool.enable) {
-      if (!threadPool.size) return defaultSize;
+      if (threadPool.size === undefined) return defaultSize;
+      if (!Number.isInteger(threadPool.size) || threadPool.size <= 0) {
+        throw new Error('[vite-plugin-bundle-obfuscator] threadPool.size must be a positive integer.');
+      }
       return threadPool.size;
     }
   }
@@ -297,14 +300,8 @@ export async function obfuscateBundle(finalConfig: Config, fileName: string, bun
   };
 }
 
-export async function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string): Promise<{ code: string; map: Rollup.SourceMapInput }> {
+export async function obfuscateLibBundle(finalConfig: Config, fileName: string, code: string, inputMap: Rollup.SourceMapInput | null = null): Promise<{ code: string; map: Rollup.SourceMapInput }> {
   const _log = new Log(finalConfig.log);
-  const registry = ObfuscatedFilesRegistry.getInstance();
-
-  if (registry.isObfuscated(fileName)) {
-    _log.info(`skipping ${fileName} (already in obfuscated registry)`);
-    return { code, map: null };
-  }
 
   _log.info(`obfuscating ${fileName}...`);
   const fileSpecificOptions = finalConfig.options.sourceMap
@@ -317,16 +314,17 @@ export async function obfuscateLibBundle(finalConfig: Config, fileName: string, 
   const obfuscated = await runObfuscator(finalConfig, code, fileSpecificOptions, fileName);
   _log.info(`obfuscation complete for ${fileName}.`);
 
-  registry.markAsObfuscated(fileName);
-  _log.info(`added ${fileName} to obfuscated files registry`);
-
   return {
     code: obfuscated.getObfuscatedCode(),
-    map: JSON.parse(obfuscated.getSourceMap() || 'null'),
+    map: composeSourcemaps(
+      JSON.parse(JSON.stringify(inputMap) || 'null'),
+      JSON.parse(obfuscated.getSourceMap() || 'null'),
+      _log.info.bind(_log),
+    ),
   };
 }
 
-export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
+export function createWorkerTask(finalConfig: Config, chunk: BundleList, isolatedRegistry = false) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, WORKER_FILE_PATH));
     const registry = ObfuscatedFilesRegistry.getInstance();
@@ -344,7 +342,7 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
     worker.postMessage({
       config: workerConfig,
       chunk: JSON.parse(JSON.stringify(chunk)),
-      registryState: registry.serialize(),
+      registryState: isolatedRegistry ? [] : registry.serialize(),
     });
 
     worker.on('message', (value) => {
@@ -373,7 +371,7 @@ export function createWorkerTask(finalConfig: Config, chunk: BundleList) {
         });
       }
 
-      if (value.registryState && Array.isArray(value.registryState)) {
+      if (!isolatedRegistry && value.registryState && Array.isArray(value.registryState)) {
         registry.updateFromSerialized(value.registryState);
       }
 

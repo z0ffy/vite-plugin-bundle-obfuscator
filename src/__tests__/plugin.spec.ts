@@ -156,12 +156,16 @@ describe('getThreadPoolSize', () => {
 
   it('should return the provided threadPool size when enabled', () => {
     const configWithCustomSize = {...defaultConfig, threadPool: {enable: true, size: 8}};
-    expect(getThreadPoolSize(configWithCustomSize)).toBeTypeOf('number');
+    expect(getThreadPoolSize(configWithCustomSize)).toBe(8);
   });
 
-  it('should return default CPU count when threadPool size is 0', () => {
-    const configWithSizeZero = {...defaultConfig, threadPool: {enable: true, size: 0}};
-    expect(getThreadPoolSize(configWithSizeZero)).toBeTypeOf('number');
+  it.each([0, -1, 0.5, NaN, Infinity])('should reject invalid enabled pool size %s', size => {
+    expect(() => getThreadPoolSize({...defaultConfig, threadPool: {enable: true, size}}))
+      .toThrow('threadPool.size must be a positive integer');
+  });
+
+  it('should preserve the default for an omitted JavaScript pool size', () => {
+    expect(getThreadPoolSize({...defaultConfig, threadPool: {enable: true} as any})).toBeTypeOf('number');
   });
 });
 
@@ -488,6 +492,22 @@ describe('is utils', () => {
       expect(isFileNameExcluded('test/app.js', excludes)).toBe(true);
       expect(isFileNameExcluded('app.js', excludes)).toBe(false);
     });
+
+    it.each([/entry/g, /entry/y])('should match %s repeatedly without changing its lastIndex', pattern => {
+      pattern.lastIndex = 3;
+      for (const excludes of [pattern, [pattern]]) {
+        expect(isFileNameExcluded('entry-a.js', excludes)).toBe(true);
+        expect(isFileNameExcluded('entry-b.js', excludes)).toBe(true);
+        expect(isFileNameExcluded('vendor.js', excludes)).toBe(false);
+        expect(pattern.lastIndex).toBe(3);
+      }
+    });
+
+    it('should support frozen stateful exclusion patterns', () => {
+      const pattern = Object.freeze(/entry/g);
+      expect(isFileNameExcluded('entry.js', [pattern])).toBe(true);
+      expect(isFileNameExcluded('entry.js', [pattern])).toBe(true);
+    });
   });
 });
 
@@ -596,6 +616,20 @@ describe('createWorkerTask', () => {
 
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('message', expect.any(Function));
     expect(mockWorkerInstance.on).toHaveBeenCalledWith('error', expect.any(Function));
+  });
+
+  it('should isolate library output from the global registry', async () => {
+    const registry = ObfuscatedFilesRegistry.getInstance();
+    registry.markAsObfuscated('entry.js');
+    const chunk: BundleList = [['entry.js', {code: 'export const value = 1'} as Rollup.OutputChunk]];
+    const task = createWorkerTask(defaultConfig, chunk, true);
+    const worker = vi.mocked(Worker).mock.results[0].value;
+    expect(worker.postMessage.mock.calls[0][0].registryState).toEqual([]);
+    const handler = worker.on.mock.calls.find(([event]: [string]) => event === 'message')[1];
+    handler({results: [{fileName: 'entry.js', obfuscatedCode: 'obfuscated library'}], registryState: ['other.js']});
+    await task;
+    expect(chunk[0][1].code).toBe('obfuscated library');
+    expect(registry.serialize()).toEqual(['entry.js']);
   });
 
   it('should remove onProgress before posting config to worker', () => {
@@ -969,7 +1003,7 @@ describe('utils/index - additional tests', () => {
       expect(logSpy).toHaveBeenCalledWith('obfuscation complete for lib.js.');
     });
 
-    it('should skip already obfuscated files', async () => {
+    it('should process the same library filename in every output', async () => {
       const finalConfig: Config = {
         ...defaultConfig,
         log: true
@@ -982,8 +1016,8 @@ describe('utils/index - additional tests', () => {
       const logSpy = vi.spyOn(console, 'log');
       const result = await obfuscateLibBundle(finalConfig, fileName, code);
 
-      expect(result.code).toBe(code);
-      expect(logSpy).toHaveBeenCalledWith('skipping lib.js (already in obfuscated registry)');
+      expect(result.code).toBe('obfuscated code');
+      expect(logSpy).toHaveBeenCalledWith('obfuscation complete for lib.js.');
     });
   });
 
@@ -1113,7 +1147,7 @@ describe('viteBundleObfuscator plugin', () => {
       expect(plugin.apply).toBe('build');
       expect(plugin.config).toBeDefined();
       expect(plugin.configResolved).toBeDefined();
-      expect(plugin.renderChunk).toBeDefined();
+      expect(plugin.renderChunk).toBeUndefined();
       expect(plugin.transformIndexHtml).toBeDefined();
       expect(plugin.generateBundle).toBeDefined();
     });
@@ -1547,19 +1581,53 @@ describe('viteBundleObfuscator plugin', () => {
     });
   });
 
-  describe('renderChunk hook', () => {
-    it('should return null when enable is false', () => {
-      const plugin = viteBundleObfuscator({enable: false}) as Plugin;
-      const code = 'console.log("test")';
-      const chunk = {name: 'test'};
-
-      // @ts-ignore
-      const result = plugin.renderChunk(code, chunk);
-
-      expect(result).toBeNull();
+  describe('library hooks', () => {
+    it('should run library obfuscation after normal generateBundle hooks', async () => {
+      const plugin = viteBundleObfuscator({log: false}) as any;
+      plugin.config({build: {lib: {entry: 'entry.js'}}}, {command: 'build', mode: 'production'});
+      expect(plugin.generateBundle.order).toBe('post');
+      const bundle = {'entry.js': {type: 'chunk', name: 'entry', code: 'export const value = 1;', map: null}};
+      await plugin.generateBundle.handler.call({emitFile: vi.fn()}, {}, bundle);
+      expect(bundle['entry.js'].code).toBe('obfuscated code');
     });
 
-    it('should return null when not in lib mode', () => {
+    it.each(['nuxt:config', 'laravel'])('should preserve the %s hook order', name => {
+      const plugin = viteBundleObfuscator() as any;
+      const originalHook = plugin.generateBundle;
+      plugin.config({plugins: [{name}], build: {}}, {command: 'build', mode: 'production'});
+      expect(plugin.generateBundle).toBe(originalHook);
+      expect(plugin.buildStart).toBeUndefined();
+      expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(plugin.outputOptions).toBeUndefined();
+    });
+
+    it('should disable library hooks when SSR is resolved later', () => {
+      const plugin = viteBundleObfuscator() as any;
+      plugin.config({build: {lib: {entry: 'entry.js'}}}, {command: 'build', mode: 'production'});
+      plugin.configResolved({build: {ssr: true}});
+      expect(typeof plugin.generateBundle).toBe('function');
+      expect(plugin.buildStart).toBeUndefined();
+      expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(plugin.outputOptions).toBeUndefined();
+    });
+
+    it('should validate library pool sizes before output processing', () => {
+      const plugin = viteBundleObfuscator({threadPool: {enable: true, size: -1}}) as any;
+      plugin.config({build: {lib: {entry: 'entry.js'}}}, {command: 'build', mode: 'production'});
+      expect(() => plugin.buildStart()).toThrow('threadPool.size must be a positive integer');
+    });
+
+    it('should leave library hooks disabled when enable is false', () => {
+      const plugin = viteBundleObfuscator({enable: false}) as Plugin;
+      // @ts-ignore
+      plugin.config({build: {lib: {entry: 'src/index.ts'}}}, {command: 'build', mode: 'production'});
+
+      expect(plugin.renderChunk).toBeUndefined();
+      expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(typeof plugin.generateBundle).toBe('function');
+    });
+
+    it('should leave the application generateBundle hook order unchanged', () => {
       const plugin = viteBundleObfuscator() as Plugin;
       const config = {build: {}};
       const env = {command: 'build', mode: 'production', isSsrBuild: false};
@@ -1567,13 +1635,9 @@ describe('viteBundleObfuscator plugin', () => {
       // @ts-ignore
       plugin.config(config, env);
 
-      const code = 'console.log("test")';
-      const chunk = {name: 'test'};
-
-      // @ts-ignore
-      const result = plugin.renderChunk(code, chunk);
-
-      expect(result).toBeNull();
+      expect(plugin.renderChunk).toBeUndefined();
+      expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(typeof plugin.generateBundle).toBe('function');
     });
   });
 });

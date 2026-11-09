@@ -1,5 +1,5 @@
 import type { Plugin, PluginOption, Rollup, ResolvedConfig, IndexHtmlTransformHook } from 'vite';
-import { BundleList, Config, ViteConfigFn } from './type';
+import { Config, ViteConfigFn } from './type';
 import {
   CodeSizeAnalyzer,
   createWorkerTask,
@@ -17,8 +17,8 @@ import {
   Log,
   modifyChunkName,
   obfuscateBundle,
-  obfuscateLibBundle,
 } from './utils';
+import { createLibraryHooks } from './library';
 import { isArray, isFunction, isLaravelProject, isLibMode, isNuxtProject, isObject } from './utils/is';
 import { defaultConfig, LOG_COLOR, NODE_MODULES, VENDOR_MODULES } from './utils/constants';
 
@@ -29,6 +29,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   let _isNuxtProject = false;
   let _isLaravelProject = false;
   let _isSsrBuild = false;
+  const libraryHooks = createLibraryHooks(finalConfig, _log);
 
   const obfuscateAllChunks = async (
     bundle: Rollup.OutputBundle,
@@ -92,6 +93,19 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     _isLibMode = isLibMode(config);
     _isNuxtProject = isNuxtProject(config);
     _isLaravelProject = isLaravelProject(config);
+
+    const processLibrary = finalConfig.enable && _isLibMode && !_isSsrBuild;
+    plugin.buildStart = processLibrary ? libraryHooks.buildStart : undefined;
+    plugin.outputOptions = processLibrary ? { order: 'post', handler: libraryHooks.outputOptions } : undefined;
+    plugin.augmentChunkHash = processLibrary ? libraryHooks.augmentChunkHash : undefined;
+    plugin.generateBundle = processLibrary
+      ? {
+          order: 'post',
+          handler: async function (...args) {
+            if (!_isSsrBuild) await libraryHooks.generateBundle.call(this, ...args);
+          },
+        }
+      : generateBundleHandler;
 
     if (getViteMajorVersion() >= 5 && finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)) {
       const original = config.worker?.plugins;
@@ -184,6 +198,13 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
   };
 
   const configResolvedHandler: (resolvedConfig: ResolvedConfig) => void | Promise<void> = (resolvedConfig) => {
+    if (_isLibMode && resolvedConfig.build.ssr) {
+      _isSsrBuild = true;
+      plugin.buildStart = undefined;
+      plugin.outputOptions = undefined;
+      plugin.augmentChunkHash = undefined;
+      plugin.generateBundle = generateBundleHandler;
+    }
     // Vite 4 resolves worker plugins before config hooks, so inject into the resolved list.
     if (getViteMajorVersion() === 4 && finalConfig.enable && isEnabledFeature(finalConfig.obfuscateWorker)
       && !resolvedConfig.build.ssr) {
@@ -218,25 +239,6 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     await obfuscateAllChunks(bundle);
   };
 
-  const renderChunkHandler: Rollup.Plugin['renderChunk'] = (code: string, chunk: Rollup.RenderedChunk) => {
-    if (!finalConfig.enable || !_isLibMode || _isSsrBuild) return null;
-
-    return (async () => {
-      const analyzer = new CodeSizeAnalyzer(_log);
-      const bundleList = [[chunk.name, { code }]] as BundleList;
-      analyzer.start(bundleList);
-
-      const { code: obfuscatedCode, map } = await obfuscateLibBundle(finalConfig, chunk.name, code);
-
-      analyzer.end(bundleList);
-
-      return {
-        code: obfuscatedCode,
-        map,
-      };
-    })();
-  };
-
   const getTransformIndexHtml = () => {
     const viteVersion = getViteMajorVersion();
     if (viteVersion >= 5) {
@@ -252,13 +254,13 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     } as any;
   };
 
-  return {
+  const plugin: Plugin = {
     name: 'vite-plugin-bundle-obfuscator',
     apply: finalConfig.apply,
     config: modifyConfigHandler,
     configResolved: configResolvedHandler,
-    renderChunk: renderChunkHandler,
     transformIndexHtml: getTransformIndexHtml(),
     generateBundle: generateBundleHandler,
   };
+  return plugin;
 }

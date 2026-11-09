@@ -36,7 +36,7 @@ export function isFileNameExcluded(fileName: string, excludes: (RegExp | string)
       if (isString(exclude)) {
         return fileName.includes(exclude as string);
       } else if (isRegExp(exclude)) {
-        return (exclude as RegExp).test(fileName);
+        return new RegExp(exclude.source, exclude.flags).test(fileName);
       }
       return false;
     });
@@ -47,7 +47,7 @@ export function isFileNameExcluded(fileName: string, excludes: (RegExp | string)
   }
 
   if (isRegExp(excludes)) {
-    return (excludes as RegExp).test(fileName);
+    return new RegExp(excludes.source, excludes.flags).test(fileName);
   }
 
   return false;

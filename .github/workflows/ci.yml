@@ -132,6 +132,62 @@ jobs:
           path: package-artifact/*.tgz
           retention-days: 7
 
+  browser-tests:
+    name: Chromium Browser Regression
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: test-fixtures/vite
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: ${{ runner.temp }}/plugin-package
+
+      - name: Install browser fixture
+        run: |
+          package_tarball=$(find "${RUNNER_TEMP}/plugin-package" -name '*.tgz' -print -quit)
+          test -n "$package_tarball"
+          pnpm add --save-dev "vite@8.2.1" "$package_tarball"
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build browser fixtures
+        run: pnpm run build:browser
+
+      - name: Run Chromium checks
+        run: pnpm run test:browser
+
+      - name: Upload browser reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromium-report
+          path: |
+            test-fixtures/vite/playwright-report/
+            test-fixtures/vite/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
   vite-compatibility:
     name: Vite ${{ matrix.vite-version }} Compatibility
     runs-on: ubuntu-latest
