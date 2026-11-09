@@ -43,6 +43,25 @@ for (const threadPool of [false, true]) {
   }
 }
 
+for (const sourcemap of [true, 'inline', 'hidden']) {
+  test(`loads the library with matching Debug IDs (sourcemap=${sourcemap})`, async ({ page, request }) => {
+    const bundles = await (await request.get('/library/manifest.json')).json();
+    const bundle = bundles.find(item => item.sourcemap === sourcemap);
+    expect(bundle).toBeDefined();
+    const code = await (await request.get(bundle.url)).text();
+    const ids = [...code.matchAll(/\/\/# debugId=([\da-f-]+)/g)];
+    expect(ids).toHaveLength(1);
+    const map = sourcemap === 'inline'
+      ? JSON.parse(Buffer.from(/base64,([^\r\n]+)/.exec(code)[1], 'base64').toString())
+      : await (await request.get(`${bundle.url}.map`)).json();
+    expect(map.debugId).toBe(ids[0][1]);
+    expect(code.includes('sourceMappingURL')).toBe(sourcemap !== 'hidden');
+    await page.goto('/');
+    const sum = await page.evaluate(async url => (await import(url)).add(1, 2), bundle.url);
+    expect(sum).toBe(3);
+  });
+}
+
 test('loads dynamically imported obfuscated chunks with the thread pool', async ({ page, request }) => {
   const response = await request.get('/browser/manifest.json');
   expect(response.ok()).toBeTruthy();

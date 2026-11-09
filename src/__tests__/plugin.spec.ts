@@ -1598,6 +1598,7 @@ describe('viteBundleObfuscator plugin', () => {
       expect(plugin.generateBundle).toBe(originalHook);
       expect(plugin.buildStart).toBeUndefined();
       expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(plugin.outputOptions).toBeUndefined();
     });
 
     it('should disable library hooks when SSR is resolved later', () => {
@@ -1607,6 +1608,7 @@ describe('viteBundleObfuscator plugin', () => {
       expect(typeof plugin.generateBundle).toBe('function');
       expect(plugin.buildStart).toBeUndefined();
       expect(plugin.augmentChunkHash).toBeUndefined();
+      expect(plugin.outputOptions).toBeUndefined();
     });
 
     it('should validate library pool sizes before output processing', () => {

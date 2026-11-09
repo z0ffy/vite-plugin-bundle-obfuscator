@@ -96,6 +96,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
 
     const processLibrary = finalConfig.enable && _isLibMode && !_isSsrBuild;
     plugin.buildStart = processLibrary ? libraryHooks.buildStart : undefined;
+    plugin.outputOptions = processLibrary ? { order: 'post', handler: libraryHooks.outputOptions } : undefined;
     plugin.augmentChunkHash = processLibrary ? libraryHooks.augmentChunkHash : undefined;
     plugin.generateBundle = processLibrary
       ? {
@@ -200,6 +201,7 @@ export default function viteBundleObfuscator(config?: Partial<Config>): PluginOp
     if (_isLibMode && resolvedConfig.build.ssr) {
       _isSsrBuild = true;
       plugin.buildStart = undefined;
+      plugin.outputOptions = undefined;
       plugin.augmentChunkHash = undefined;
       plugin.generateBundle = generateBundleHandler;
     }

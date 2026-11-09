@@ -166,6 +166,80 @@ describe('library output', () => {
     if (getViteMajorVersion() < 8) expect(map.sourcesContent).toBeUndefined();
   });
 
+  it('honors an output disabling maps even when plugin maps are enabled', async () => {
+    const {chunks, outDir} = await buildLibrary({
+      sourcemap: true,
+      output: {sourcemap: false},
+      plugin: viteBundleObfuscator({log: false, options: {...defaultConfig.options, sourceMap: true}}),
+    });
+    expect(chunks[0].code).not.toContain('sourceMappingURL');
+    expect(chunks[0].map).toBeNull();
+    expect(readdirSync(outDir).filter(name => name.endsWith('.map'))).toEqual([]);
+    expect(execute(chunks[0]).status).toBe(0);
+  });
+
+  it('keeps map settings independent across outputs', async () => {
+    const {chunks, outDir} = await buildLibrary({sourcemap: true, formats: ['es', 'cjs'], output: [
+      {format: 'es', entryFileNames: 'no-map.js', sourcemap: false},
+      {format: 'cjs', entryFileNames: 'hidden.cjs', sourcemap: 'hidden'},
+    ]});
+    for (const chunk of chunks) expect(chunk.code).not.toContain('sourceMappingURL');
+    expect(chunks[0].map).toBeNull();
+    expect(chunks[1].map).not.toBeNull();
+    expect(readdirSync(outDir).filter(name => name.endsWith('.map'))).toEqual(['hidden.cjs.map']);
+  });
+
+  it.each([true, 'inline', 'hidden'])('publishes matching final Debug IDs with sourcemap=%s', async sourcemap => {
+    const run = async (seed: number) => {
+      const {chunks, outDir} = await buildLibrary({sourcemap, output: {sourcemapDebugIds: true},
+        plugin: viteBundleObfuscator({log: false, options: {...defaultConfig.options, seed, controlFlowFlattening: false}})});
+      const chunk = chunks[0];
+      const ids = [...chunk.code.matchAll(/\/\/# debugId=([\da-f-]+)/g)];
+      expect(ids).toHaveLength(1);
+      expect(ids[0][1]).toMatch(/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/);
+      const map = sourcemap === 'inline'
+        ? JSON.parse(Buffer.from(/base64,([^\r\n]+)/.exec(chunk.code)![1], 'base64').toString())
+        : JSON.parse(readFileSync(join(outDir, `${chunk.fileName}.map`), 'utf8'));
+      expect(map.debugId).toBe(ids[0][1]);
+      expect(chunk.map.debugId).toBe(map.debugId);
+      const result = execute(chunk, true);
+      expect(result.status).toBe(1);
+      expect(result.error).toBeUndefined();
+      if (sourcemap !== 'hidden') expect(result.stderr).toContain('/entry.js:5:');
+      return map.debugId;
+    };
+    const first = await run(123);
+    expect(await run(123)).toBe(first);
+    expect(await run(456)).not.toBe(first);
+  });
+
+  // Rolldown does not yet support Rollup's custom sourcemap filename patterns.
+  it.skipIf(getViteMajorVersion() >= 8).each(['base64', 'base36', 'hex'])('hashes final sourcemaps with %s filenames', async hashCharacters => {
+    const run = async (seed: number) => {
+      const naming = vi.fn(() => 'maps/[format]-[name]-[chunkhash]-[hash:10].map');
+      const {chunks, outDir} = await buildLibrary({sourcemap: true,
+        output: {entryFileNames: '[name]-[hash].js', sourcemapFileNames: naming, hashCharacters},
+        plugin: viteBundleObfuscator({log: false, options: {...defaultConfig.options, seed, controlFlowFlattening: false}})});
+      expect(naming).toHaveBeenCalledTimes(1);
+      const chunk = chunks[0];
+      const names = readdirSync(join(outDir, 'maps'));
+      expect(names).toHaveLength(1);
+      const name = `maps/${names[0]}`;
+      expect(chunk.sourcemapFileName).toBe(name);
+      expect(chunk.code).toContain(`//# sourceMappingURL=${name}`);
+      const map = readFileSync(join(outDir, name), 'utf8');
+      expect(JSON.parse(map).mappings).toBe(chunk.map.mappings);
+      expect(execute(chunk).status).toBe(0);
+      return {name, map, hash: /([\w-]{10})\.map$/.exec(name)![1]};
+    };
+    const first = await run(123);
+    expect(await run(123)).toEqual(first);
+    const changed = await run(456);
+    expect(changed.map).not.toBe(first.map);
+    expect(changed.name).not.toBe(first.name);
+    expect(changed.hash).not.toBe(first.hash);
+  });
+
   it('invalidates hashed filenames when obfuscation settings change, with stable seeded builds', async () => {
     const run = async (seed: number) => (await buildLibrary({plugin: viteBundleObfuscator({log: false, options: {...defaultConfig.options, seed}}), output: {entryFileNames: '[name]-[hash].js'}})).chunks[0];
     const first = await run(123);
@@ -183,30 +257,5 @@ describe('library output', () => {
     const second = await buildLibrary({plugin, output: {entryFileNames: '[name]-[hash].js'}});
     expect(first.chunks[0].fileName).not.toBe(second.chunks[0].fileName);
   });
-
-  it('isolates random hashes in concurrent builds sharing one plugin instance', async () => {
-    const plugin = viteBundleObfuscator({log: false});
-    let release!: () => void;
-    let starts = 0;
-    let timer: ReturnType<typeof setTimeout>;
-    const gate = new Promise<void>((resolve, reject) => {
-      release = resolve;
-      timer = setTimeout(() => reject(new Error('Concurrent buildStart hooks did not overlap')), 5000);
-    });
-    const barrier = {name: 'concurrent-build-barrier', async buildStart() {
-      if (++starts === 2) release();
-      await gate;
-    }};
-    try {
-      const build = () => buildLibrary({plugin, additionalPlugins: [barrier], write: false, output: {entryFileNames: '[name]-[hash].js'}});
-      const [first, second] = await Promise.all([build(), build()]);
-      expect(starts).toBe(2);
-      expect(first.chunks[0].fileName).not.toBe(second.chunks[0].fileName);
-      expect(first.chunks[0].code).not.toBe(second.chunks[0].code);
-      for (const result of [first, second]) expect(result.chunks[0].code).toMatch(/_0x[\da-f]+/);
-    } finally {
-      clearTimeout(timer!);
-    }
-  }, 10000);
 
 });

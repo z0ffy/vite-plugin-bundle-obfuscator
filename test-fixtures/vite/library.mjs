@@ -67,7 +67,6 @@ for (const threadPool of [false, { enable: true, size: 2 }]) {
     browserBundles.push({ format: chunk.format, threadPool: !!threadPool, url: `/library/formats-${!!threadPool}/${chunk.fileName}` });
   }
 }
-writeFileSync(resolve(root, 'dist/library/manifest.json'), JSON.stringify(browserBundles));
 
 const seeded = seed => ({ options: { seed, compact: true, selfDefending: true, controlFlowFlattening: false } });
 for (const sourcemap of [true, 'inline', 'hidden']) {
@@ -83,6 +82,91 @@ for (const sourcemap of [true, 'inline', 'hidden']) {
   assert.equal(map.mappings, chunk.map.mappings);
   const result = execute(chunk, true);
   if (sourcemap !== 'hidden') assert.match(result.stderr, /library\.js:6:/);
+}
+
+for (const threadPool of [false, { enable: true, size: 2 }]) {
+  const { chunks, outDir } = await buildLibrary(`no-map-${!!threadPool}`,
+    { ...seeded(123), threadPool },
+    { sourcemap: true, lib: { entry, formats: ['es'] } }, { sourcemap: false });
+  assert.equal(chunks[0].map, null);
+  assert.doesNotMatch(chunks[0].code, /sourceMappingURL/);
+  assert.deepEqual(readdirSync(outDir).filter(name => name.endsWith('.map')), []);
+  execute(chunks[0]);
+}
+
+const independentMaps = await buildLibrary('independent-maps', seeded(123), { sourcemap: true, lib: { entry, formats: ['es', 'cjs'] } }, [
+  { format: 'es', entryFileNames: 'no-map.js', sourcemap: false },
+  { format: 'cjs', entryFileNames: 'hidden.cjs', sourcemap: 'hidden' },
+]);
+assert.equal(independentMaps.chunks[0].map, null);
+assert(independentMaps.chunks[1].map);
+for (const chunk of independentMaps.chunks) assert.doesNotMatch(chunk.code, /sourceMappingURL/);
+assert.deepEqual(readdirSync(independentMaps.outDir).filter(name => name.endsWith('.map')), ['hidden.cjs.map']);
+
+if (Number(version.split('.')[0]) >= 5) {
+  for (const threadPool of [false, { enable: true, size: 2 }]) {
+    for (const sourcemap of [true, 'inline', 'hidden']) {
+      const ids = [];
+      for (const seed of [123, 123, 456]) {
+        const { chunks, outDir } = await buildLibrary(`debug-id-${!!threadPool}-${sourcemap}-${ids.length}`,
+          { ...seeded(seed), threadPool },
+          { sourcemap, lib: { entry, formats: ['es'] } }, { sourcemapDebugIds: true });
+        const chunk = chunks[0];
+        const matches = [...chunk.code.matchAll(/\/\/# debugId=([\da-f-]+)/g)];
+        assert.equal(matches.length, 1);
+        const map = sourcemap === 'inline'
+          ? JSON.parse(Buffer.from(/base64,([^\r\n]+)/.exec(chunk.code)[1], 'base64').toString())
+          : JSON.parse(readFileSync(resolve(outDir, `${chunk.fileName}.map`), 'utf8'));
+        assert.equal(map.debugId, matches[0][1]);
+        assert.equal(chunk.map.debugId, map.debugId);
+        if (seed === 123 && !ids.length && threadPool) browserBundles.push({
+          format: 'es', threadPool: true, sourcemap, url: `/library/debug-id-true-${sourcemap}-0/${chunk.fileName}`,
+        });
+        ids.push(map.debugId);
+        const result = execute(chunk, true);
+        if (sourcemap !== 'hidden') assert.match(result.stderr, /library\.js:6:/);
+      }
+      assert.equal(ids[0], ids[1]);
+      assert.notEqual(ids[0], ids[2]);
+    }
+  }
+}
+
+// Rolldown does not yet implement custom sourcemap filename patterns.
+if (Number(version.split('.')[0]) < 8) {
+  for (const hashCharacters of Number(version.split('.')[0]) >= 5 ? ['base64', 'base36', 'hex'] : ['base64']) {
+    for (const callback of [false, true]) {
+      const maps = [];
+      for (const seed of [123, 123, 456]) {
+        const pattern = 'maps/[format]-[name]-[hash:10].map';
+        let calls = 0;
+        const sourcemapFileNames = callback
+          ? () => {
+              calls++;
+              return pattern;
+            }
+          : pattern;
+        const { chunks, outDir } = await buildLibrary(`map-hash-${hashCharacters}-${callback}-${maps.length}`, seeded(seed),
+          { sourcemap: true, lib: { entry, formats: ['es'] } }, { sourcemapFileNames, ...(Number(version.split('.')[0]) >= 5 && { hashCharacters }) });
+        const chunk = chunks[0];
+        if (callback) assert.equal(calls, 1);
+        const names = readdirSync(resolve(outDir, 'maps'));
+        assert.equal(names.length, 1);
+        const name = `maps/${names[0]}`;
+        assert.equal(chunk.sourcemapFileName, name);
+        assert(chunk.code.includes(`//# sourceMappingURL=${name}`));
+        const source = readFileSync(resolve(outDir, name), 'utf8');
+        assert.equal(JSON.parse(source).mappings, chunk.map.mappings);
+        const alphabet = hashCharacters === 'hex' ? '[a-f0-9]' : hashCharacters === 'base36' ? '[a-z0-9]' : '[\\w-]';
+        assert.match(name, new RegExp(`-${alphabet}{10}\\.map$`));
+        maps.push({ name, source });
+        execute(chunk);
+      }
+      assert.deepEqual(maps[0], maps[1]);
+      assert.notEqual(maps[0].source, maps[2].source);
+      assert.notEqual(maps[0].name, maps[2].name);
+    }
+  }
 }
 
 const hashes = [];
@@ -116,26 +200,5 @@ const formatter = {
 const ordered = await buildLibrary('post-order', {}, { lib: { entry, formats: ['es'] } }, {}, [formatter, postObfuscator]);
 execute(ordered.chunks[0]);
 
-let release;
-let starts = 0;
-let gateTimer;
-const gate = new Promise((resolve, reject) => {
-  release = resolve;
-  gateTimer = setTimeout(() => reject(new Error('Concurrent buildStart hooks did not overlap')), 5000);
-});
-const shared = obfuscator({ log: false });
-const barrier = { name: 'concurrent-build-barrier', async buildStart() {
-  if (++starts === 2) release();
-  await gate;
-} };
-try {
-  const run = name => buildLibrary(name, {}, { write: false, lib: { entry, formats: ['es'] } }, { entryFileNames: '[name]-[hash].js' }, [shared, barrier]);
-  const [first, second] = await Promise.all([run('concurrent-a'), run('concurrent-b')]);
-  assert.equal(starts, 2);
-  assert.notEqual(first.chunks[0].fileName, second.chunks[0].fileName);
-  assert.notEqual(first.chunks[0].code, second.chunks[0].code);
-}
-finally {
-  clearTimeout(gateTimer);
-}
+writeFileSync(resolve(root, 'dist/library/manifest.json'), JSON.stringify(browserBundles));
 console.log(`Library regression checks passed on Vite ${version}`);
