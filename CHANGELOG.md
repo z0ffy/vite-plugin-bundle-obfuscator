@@ -1,6 +1,15 @@
 ## Changelog
 
-### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.13.2...HEAD)
+### [Unreleased](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.14.0...HEAD)
+
+### [v1.14.0](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.13.2...v1.14.0) -  9 November 2026
+
+- fix: obfuscate library bundles after rendering so the default `selfDefending` output loads without hanging ([#336](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/issues/336), [#337](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/pull/337)).
+- fix: preserve library sourcemap output settings, composed mappings, hashed map filenames, and Debug IDs.
+- fix: apply global and sticky exclusion patterns consistently across chunks and outputs.
+- fix: reject invalid enabled thread-pool sizes. `threadPool.size` must be a positive integer; `0` no longer selects the default size. Use `threadPool: true` for the default CPU-based size.
+- docs: clarify plugin ordering, downstream processing, and sourcemap limitations. Libraries that consumers will rebundle, minify, or format should use `options: { selfDefending: false }`.
+- test: add library, watch, Vite 4–8 compatibility, and Chromium browser regression checks.
 
 ### [v1.13.2](https://github.com/z0ffy/vite-plugin-bundle-obfuscator/compare/v1.13.1...v1.13.2) -  20 September 2026
 
