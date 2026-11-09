@@ -27,13 +27,13 @@ afterAll(() => {
   rmSync(root, {recursive: true, force: true});
 });
 
-async function buildLibrary({plugin = viteBundleObfuscator({log: false}), formats = ['es'], output = {}, sourcemap = false, additionalPlugins = [], write = true}: any = {}) {
+async function buildLibrary({plugin = viteBundleObfuscator({log: false}), formats = ['es'], output = {}, sourcemap = false, beforePlugins = [], additionalPlugins = [], write = true}: any = {}) {
   const outDir = join(root, `dist-${nextBuild++}`);
   const result: any = await build({
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [plugin, ...additionalPlugins],
+    plugins: [...beforePlugins, plugin, ...additionalPlugins],
     build: {
       outDir,
       write,
@@ -97,6 +97,39 @@ describe('library output', () => {
     expect(execute(chunks[0]).status).toBe(0);
   });
 
+  it.each([/entry/g, /entry/y])('respects stateful exclusion %s across outputs and rebuilds', async pattern => {
+    pattern.lastIndex = 2;
+    const plugin = viteBundleObfuscator({log: false, excludes: [pattern]});
+    for (let i = 0; i < 2; i++) {
+      const {chunks} = await buildLibrary({plugin, formats: ['es', 'cjs', 'umd', 'iife'], write: false});
+      for (const chunk of chunks) expect(chunk.code).not.toMatch(/_0x[\da-f]+/);
+      expect(pattern.lastIndex).toBe(2);
+    }
+  });
+
+  it.each([-1, 0, 0.5, NaN, Infinity])('rejects enabled pool size %s instead of emitting plain code', async size => {
+    await expect(buildLibrary({plugin: viteBundleObfuscator({log: false, threadPool: {enable: true, size}})}))
+      .rejects.toThrow('threadPool.size must be a positive integer');
+  });
+
+  it('preserves selfDefending after an earlier post-order mutating plugin', async () => {
+    const plugin = viteBundleObfuscator({log: false}) as any;
+    plugin.enforce = 'post';
+    const {chunks} = await buildLibrary({plugin, beforePlugins: [{
+      name: 'post-order-formatter',
+      enforce: 'post',
+      generateBundle: {order: 'post', handler(_: any, bundle: any) {
+        for (const chunk of Object.values(bundle) as any[]) {
+          if (chunk.type === 'chunk') chunk.code = chunk.code.replace(/;/g, ';\n');
+        }
+      }},
+    }]});
+    const run = execute(chunks[0]);
+    expect(run.error).toBeUndefined();
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.stdout).toContain('EXPORT_OK');
+  });
+
   it.each([true, 'inline', 'hidden'])('publishes a composed sourcemap for %s', async sourcemap => {
     // Keep the assertion independent of javascript-obfuscator's unmapped control-flow helper frames.
     const {chunks, outDir} = await buildLibrary({sourcemap, plugin: viteBundleObfuscator({log: false, options: {...defaultConfig.options, seed: 1, controlFlowFlattening: false}})});
@@ -150,5 +183,30 @@ describe('library output', () => {
     const second = await buildLibrary({plugin, output: {entryFileNames: '[name]-[hash].js'}});
     expect(first.chunks[0].fileName).not.toBe(second.chunks[0].fileName);
   });
+
+  it('isolates random hashes in concurrent builds sharing one plugin instance', async () => {
+    const plugin = viteBundleObfuscator({log: false});
+    let release!: () => void;
+    let starts = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const gate = new Promise<void>((resolve, reject) => {
+      release = resolve;
+      timer = setTimeout(() => reject(new Error('Concurrent buildStart hooks did not overlap')), 5000);
+    });
+    const barrier = {name: 'concurrent-build-barrier', async buildStart() {
+      if (++starts === 2) release();
+      await gate;
+    }};
+    try {
+      const build = () => buildLibrary({plugin, additionalPlugins: [barrier], write: false, output: {entryFileNames: '[name]-[hash].js'}});
+      const [first, second] = await Promise.all([build(), build()]);
+      expect(starts).toBe(2);
+      expect(first.chunks[0].fileName).not.toBe(second.chunks[0].fileName);
+      expect(first.chunks[0].code).not.toBe(second.chunks[0].code);
+      for (const result of [first, second]) expect(result.chunks[0].code).toMatch(/_0x[\da-f]+/);
+    } finally {
+      clearTimeout(timer!);
+    }
+  }, 10000);
 
 });

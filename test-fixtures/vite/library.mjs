@@ -10,13 +10,13 @@ const root = import.meta.dirname;
 const entry = resolve(root, 'src/library.js');
 const bundlerKey = Number(version.split('.')[0]) >= 8 ? 'rolldownOptions' : 'rollupOptions';
 
-async function buildLibrary(name, config = {}, buildOptions = {}, output = {}) {
+async function buildLibrary(name, config = {}, buildOptions = {}, output = {}, plugins) {
   const outDir = resolve(root, 'dist/library', name);
   const result = await build({
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [obfuscator({ log: false, ...config })],
+    plugins: plugins || [obfuscator({ log: false, ...config })],
     build: {
       outDir,
       lib: { entry, formats: ['es', 'cjs', 'umd', 'iife'], name: 'TestLibrary' },
@@ -92,4 +92,50 @@ for (const seed of [123, 123, 456]) {
 }
 assert.equal(hashes[0], hashes[1]);
 assert.notEqual(hashes[0], hashes[2]);
+
+for (const pattern of [/library/g, /library/y]) {
+  pattern.lastIndex = 2;
+  const { chunks } = await buildLibrary(`exclude-${pattern.flags}`, { excludes: [pattern] }, { write: false, lib: { entry, formats: ['es', 'cjs'], fileName: 'library' } });
+  for (const chunk of chunks) assert.doesNotMatch(chunk.code, /_0x[\da-f]+/);
+  assert.equal(pattern.lastIndex, 2);
+}
+
+await assert.rejects(buildLibrary('invalid-pool', { threadPool: { enable: true, size: -1 } }, { write: false }), /threadPool.size must be a positive integer/);
+
+const postObfuscator = obfuscator({ log: false });
+postObfuscator.enforce = 'post';
+const formatter = {
+  name: 'earlier-post-formatter',
+  enforce: 'post',
+  generateBundle: { order: 'post', handler(outputOptions, bundle) {
+    for (const chunk of Object.values(bundle)) {
+      if (chunk.type === 'chunk') chunk.code = chunk.code.replaceAll(';', ';\n');
+    }
+  } },
+};
+const ordered = await buildLibrary('post-order', {}, { lib: { entry, formats: ['es'] } }, {}, [formatter, postObfuscator]);
+execute(ordered.chunks[0]);
+
+let release;
+let starts = 0;
+let gateTimer;
+const gate = new Promise((resolve, reject) => {
+  release = resolve;
+  gateTimer = setTimeout(() => reject(new Error('Concurrent buildStart hooks did not overlap')), 5000);
+});
+const shared = obfuscator({ log: false });
+const barrier = { name: 'concurrent-build-barrier', async buildStart() {
+  if (++starts === 2) release();
+  await gate;
+} };
+try {
+  const run = name => buildLibrary(name, {}, { write: false, lib: { entry, formats: ['es'] } }, { entryFileNames: '[name]-[hash].js' }, [shared, barrier]);
+  const [first, second] = await Promise.all([run('concurrent-a'), run('concurrent-b')]);
+  assert.equal(starts, 2);
+  assert.notEqual(first.chunks[0].fileName, second.chunks[0].fileName);
+  assert.notEqual(first.chunks[0].code, second.chunks[0].code);
+}
+finally {
+  clearTimeout(gateTimer);
+}
 console.log(`Library regression checks passed on Vite ${version}`);

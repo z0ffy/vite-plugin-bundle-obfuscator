@@ -19,10 +19,8 @@ import {
 const sourceMapComment = /(?:^|\r?\n)[\t ]*\/\/[#@][\t ]*sourceMappingURL=([^\r\n]*)(?:\r?\n)*$/;
 
 export function createLibraryHooks(config: Config, log: Log) {
-  let buildNonce = randomBytes(16).toString('hex');
-
   const buildStart = () => {
-    buildNonce = randomBytes(16).toString('hex');
+    if (isEnableThreadPool(config)) getThreadPoolSize(config);
   };
 
   const augmentChunkHash = () => {
@@ -33,7 +31,8 @@ export function createLibraryHooks(config: Config, log: Log) {
       obfuscatorVersion: javascriptObfuscator.version,
       options: config.options,
       excludes: config.excludes.map(String),
-      nonce: random ? buildNonce : undefined,
+      // Per-chunk entropy cannot be overwritten by concurrent builds sharing this plugin.
+      nonce: random ? randomBytes(16).toString('hex') : undefined,
     })).digest('hex');
   };
 

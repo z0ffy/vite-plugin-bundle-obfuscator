@@ -133,7 +133,10 @@ export function getThreadPoolSize(finalConfig: Config): number {
   if (isBoolean(threadPool)) return defaultSize;
   if (isObject(threadPool)) {
     if (threadPool.enable) {
-      if (!threadPool.size) return defaultSize;
+      if (threadPool.size === undefined) return defaultSize;
+      if (!Number.isInteger(threadPool.size) || threadPool.size <= 0) {
+        throw new Error('[vite-plugin-bundle-obfuscator] threadPool.size must be a positive integer.');
+      }
       return threadPool.size;
     }
   }

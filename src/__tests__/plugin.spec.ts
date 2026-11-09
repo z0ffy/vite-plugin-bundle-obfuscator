@@ -156,12 +156,16 @@ describe('getThreadPoolSize', () => {
 
   it('should return the provided threadPool size when enabled', () => {
     const configWithCustomSize = {...defaultConfig, threadPool: {enable: true, size: 8}};
-    expect(getThreadPoolSize(configWithCustomSize)).toBeTypeOf('number');
+    expect(getThreadPoolSize(configWithCustomSize)).toBe(8);
   });
 
-  it('should return default CPU count when threadPool size is 0', () => {
-    const configWithSizeZero = {...defaultConfig, threadPool: {enable: true, size: 0}};
-    expect(getThreadPoolSize(configWithSizeZero)).toBeTypeOf('number');
+  it.each([0, -1, 0.5, NaN, Infinity])('should reject invalid enabled pool size %s', size => {
+    expect(() => getThreadPoolSize({...defaultConfig, threadPool: {enable: true, size}}))
+      .toThrow('threadPool.size must be a positive integer');
+  });
+
+  it('should preserve the default for an omitted JavaScript pool size', () => {
+    expect(getThreadPoolSize({...defaultConfig, threadPool: {enable: true} as any})).toBeTypeOf('number');
   });
 });
 
@@ -487,6 +491,22 @@ describe('is utils', () => {
       expect(isFileNameExcluded('app.spec.js', excludes)).toBe(true);
       expect(isFileNameExcluded('test/app.js', excludes)).toBe(true);
       expect(isFileNameExcluded('app.js', excludes)).toBe(false);
+    });
+
+    it.each([/entry/g, /entry/y])('should match %s repeatedly without changing its lastIndex', pattern => {
+      pattern.lastIndex = 3;
+      for (const excludes of [pattern, [pattern]]) {
+        expect(isFileNameExcluded('entry-a.js', excludes)).toBe(true);
+        expect(isFileNameExcluded('entry-b.js', excludes)).toBe(true);
+        expect(isFileNameExcluded('vendor.js', excludes)).toBe(false);
+        expect(pattern.lastIndex).toBe(3);
+      }
+    });
+
+    it('should support frozen stateful exclusion patterns', () => {
+      const pattern = Object.freeze(/entry/g);
+      expect(isFileNameExcluded('entry.js', [pattern])).toBe(true);
+      expect(isFileNameExcluded('entry.js', [pattern])).toBe(true);
     });
   });
 });
@@ -1589,14 +1609,10 @@ describe('viteBundleObfuscator plugin', () => {
       expect(plugin.augmentChunkHash).toBeUndefined();
     });
 
-    it('should reset random library hashes for every rebuild', () => {
-      const plugin = viteBundleObfuscator() as any;
+    it('should validate library pool sizes before output processing', () => {
+      const plugin = viteBundleObfuscator({threadPool: {enable: true, size: -1}}) as any;
       plugin.config({build: {lib: {entry: 'entry.js'}}}, {command: 'build', mode: 'production'});
-      plugin.buildStart();
-      const first = plugin.augmentChunkHash();
-      expect(plugin.augmentChunkHash()).toBe(first);
-      plugin.buildStart();
-      expect(plugin.augmentChunkHash()).not.toBe(first);
+      expect(() => plugin.buildStart()).toThrow('threadPool.size must be a positive integer');
     });
 
     it('should leave library hooks disabled when enable is false', () => {

@@ -54,6 +54,12 @@ JavaScript `obfuscator` plugin for `Vite` environments
   the generated code is not reformatted or processed again. For libraries that consumers will rebundle,
   minify or format, set `options: { selfDefending: false }` when building the library and verify the
   consumer's production output. `build.minify: true` alone does not guarantee compatibility.
+- For library builds, run this plugin after any other `generateBundle` hooks with `order: 'post'` that
+  modify chunk code. Hooks with the same order follow the resolved plugin order, including Vite's
+  `enforce` ordering. Later `generateBundle` or `writeBundle` code changes are incompatible with
+  `selfDefending: true`; adjust the plugin order or disable `selfDefending` for that pipeline.
+- An explicitly configured `threadPool.size` must be a positive integer. Use `threadPool: true` for
+  the default CPU-based pool size; invalid sizes fail the build instead of skipping obfuscation.
 - Library filenames containing `[hash]` account for the obfuscation options. With a random seed (the
   default) or the Pro API, these hashes change on every build. Fixed filenames still need a versioning
   or cache invalidation strategy. Publish JavaScript and its sourcemaps together.

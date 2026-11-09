@@ -51,6 +51,11 @@
 - 库模式在构建后期的 `generateBundle` 中执行混淆。默认的 `selfDefending: true` 要求生成的代码不再被格式化或二次处理。
   如果库会被下游项目再次打包、压缩或格式化，建议在构建库时设置 `options: { selfDefending: false }`，并验证消费端的生产产物。
   仅设置 `build.minify: true` 不能保证所有构建配置都兼容。
+- 库模式下，本插件应在其他会修改代码的 `generateBundle`（`order: 'post'`）钩子之后执行。
+  同级钩子遵循最终插件顺序，还需考虑 Vite 的 `enforce` 排序。后续 `generateBundle` 或 `writeBundle` 再修改代码，
+  与 `selfDefending: true` 不兼容，应调整插件顺序，或在该构建流程中关闭 `selfDefending`。
+- 显式设置的 `threadPool.size` 必须是正整数；使用 `threadPool: true` 可按 CPU 数量分配线程。
+  非法线程数会使构建报错，不会静默跳过混淆。
 - 库模式中包含 `[hash]` 的文件名会计入混淆配置；使用随机 seed（默认）或 Pro API 时，hash 每次构建都会变化。
   固定文件名仍需通过版本号或缓存失效策略更新。JavaScript 与对应的 sourcemap 应配套发布。
 - `javascript-obfuscator` 的部分转换（例如控制流混淆）会生成没有原始源码位置的辅助函数，
